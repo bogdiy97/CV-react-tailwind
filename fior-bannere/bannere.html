@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<title>Fior – bannere de prezentare</title>
+<style>
+/* ============================================================
+   Brand fonts (same as fiordrinks.ro): Playfair + Open Sans, OFL.
+   latin-ext faces come last so they serve ă â î ș ț.
+   ============================================================ */
+@font-face{font-family:"Playfair";font-weight:400;src:url(fonts/playfair-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Playfair";font-weight:400;font-style:italic;src:url(fonts/playfair-latin-400-italic.woff2) format("woff2")}
+@font-face{font-family:"Playfair";font-weight:600;src:url(fonts/playfair-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Open Sans";font-weight:400;src:url(fonts/open-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Open Sans";font-weight:600;src:url(fonts/open-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Open Sans";font-weight:700;src:url(fonts/open-sans-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Playfair";font-weight:400;src:url(fonts/playfair-latin-ext-400-normal.woff2) format("woff2");unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:"Playfair";font-weight:400;font-style:italic;src:url(fonts/playfair-latin-ext-400-italic.woff2) format("woff2");unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:"Playfair";font-weight:600;src:url(fonts/playfair-latin-ext-600-normal.woff2) format("woff2");unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:"Open Sans";font-weight:400;src:url(fonts/open-sans-latin-ext-400-normal.woff2) format("woff2");unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:"Open Sans";font-weight:600;src:url(fonts/open-sans-latin-ext-600-normal.woff2) format("woff2");unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:"Open Sans";font-weight:700;src:url(fonts/open-sans-latin-ext-700-normal.woff2) format("woff2");unicode-range:U+0100-024F,U+1E00-1EFF}
+
+/* ============================================================
+   Design tokens (colours taken from the Fior labels)
+   ============================================================ */
+:root{
+  --gold:#c9a55a;
+  --gold-light:#ecd59b;
+  --cream:#f8f0e3;
+  --ink:#2a1a12;
+
+  --quince:#e06a2b;
+  --quince-deep:#a4400f;
+  --peach:#eec583;
+  --wine:#6d1424;
+  --wine-deep:#2a070e;
+  --raspberry:#a3203a;
+  --rose:#f2c5bb;
+  --pine:#123526;
+  --pine-deep:#071a11;
+  --night:#0a1522;
+  --elder:#e6ebc0;
+  --elder-green:#2f6b31;
+  --lemon-dark:#9a7400;
+
+  --font-serif:"Playfair",Georgia,serif;
+  --font-sans:"Open Sans",system-ui,sans-serif;
+
+  --size:1080px;
+  --pad:80px;
+  --fs-title:100px;
+  --fs-text:29px;
+  --fs-eyebrow:19px;
+  --fs-legal:15px;
+}
+
+/* ============================================================
+   Shared components
+   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#5f5f5f;display:grid;gap:48px;justify-content:center;padding:48px}
+
+.banner{position:relative;width:var(--size);height:var(--size);overflow:hidden;color:var(--ink);font-family:var(--font-sans);--accent:var(--quince-deep)}
+.banner > *{position:absolute}
+.banner--dark{color:var(--cream);--accent:var(--gold-light)}
+
+.logo{top:60px;left:var(--pad);width:var(--logo-w,190px)}
+
+.copy{left:var(--pad);top:var(--copy-top,330px);width:var(--copy-w,520px)}
+.copy > * + *{margin-top:26px}
+.copy--center{left:0;right:0;width:auto;text-align:center}
+.eyebrow{font:700 var(--fs-eyebrow)/1.2 var(--font-sans);letter-spacing:.3em;text-transform:uppercase;color:var(--accent)}
+.title{font:400 var(--fs-title)/1.04 var(--font-serif);letter-spacing:-.01em}
+.title em{color:var(--accent)}
+.text{font:400 var(--fs-text)/1.45 var(--font-sans);max-width:var(--text-w,460px)}
+.copy--center .text{margin-left:auto;margin-right:auto}
+
+.pills{display:flex;gap:12px}
+.pill{padding:11px 20px;border:1.5px solid currentColor;border-radius:999px;font:600 16px/1 var(--font-sans);letter-spacing:.14em;text-transform:uppercase}
+.facts{list-style:none;font:600 26px/1.3 var(--font-sans)}
+.facts li{position:relative;padding-left:40px}
+.facts li + li{margin-top:16px}
+.facts li::before{content:"";position:absolute;left:4px;top:.42em;width:13px;height:13px;background:var(--accent);transform:rotate(45deg)}
+
+.legal{left:0;right:0;bottom:26px;text-align:center;font:600 var(--fs-legal)/1 var(--font-sans);letter-spacing:.16em;text-transform:uppercase;opacity:.7}
+
+/* Product cut-out with a contact shadow; position it with left/right + bottom */
+.product{bottom:var(--floor,110px);isolation:isolate;margin:0}
+.product img{display:block;height:var(--h);filter:drop-shadow(0 12px 18px rgba(0,0,0,.25))}
+.product::after{content:"";position:absolute;z-index:-1;left:-30%;right:-30%;bottom:-16px;height:36px;background:radial-gradient(closest-side,rgba(0,0,0,var(--shadow,.5)),transparent)}
+.product figcaption{position:absolute;top:calc(100% + 18px);left:50%;width:180px;margin-left:-90px;text-align:center;font:600 17px/1.3 var(--font-sans);letter-spacing:.04em}
+.product .product__cast{position:absolute;left:0;bottom:0;height:var(--h);z-index:-1;transform-origin:0 100%;transform:skewX(-52deg) scaleY(.34);filter:brightness(0) blur(7px);opacity:.2}
+.lineup{left:0;right:0;bottom:var(--floor,110px);display:flex;justify-content:center;align-items:flex-end;gap:var(--gap,44px)}
+.lineup .product{position:relative;bottom:0}
+
+/* Decoration helpers */
+.deco{left:var(--x);top:var(--y);width:var(--s);color:var(--c,var(--gold));opacity:var(--o,.6);transform:rotate(var(--r,0deg))}
+.deco svg,.hang svg{display:block;width:100%;height:auto}
+.glow{border-radius:50%;background:radial-gradient(circle,var(--glow,rgba(255,196,110,.45)) 0,transparent 66%)}
+.hang{top:0;left:var(--x);width:var(--s,84px);padding-top:var(--len)}
+.hang::before{content:"";position:absolute;top:0;left:50%;height:calc(var(--len) + 10px);border-left:2px solid var(--gold)}
+.snow{inset:0;pointer-events:none}
+.snow svg{display:block;width:100%;height:100%}
+.bokeh{inset:0;pointer-events:none;filter:blur(4px);
+  background:
+    radial-gradient(circle at 14% 22%,rgba(255,214,140,.32) 0 20px,transparent 36px),
+    radial-gradient(circle at 36% 9%,rgba(255,214,140,.22) 0 14px,transparent 28px),
+    radial-gradient(circle at 58% 18%,rgba(255,214,140,.26) 0 26px,transparent 44px),
+    radial-gradient(circle at 82% 10%,rgba(255,214,140,.3) 0 18px,transparent 32px),
+    radial-gradient(circle at 92% 34%,rgba(255,214,140,.2) 0 30px,transparent 50px),
+    radial-gradient(circle at 8% 62%,rgba(255,214,140,.18) 0 24px,transparent 42px),
+    radial-gradient(circle at 46% 44%,rgba(255,214,140,.14) 0 12px,transparent 24px),
+    radial-gradient(circle at 70% 76%,rgba(255,214,140,.16) 0 22px,transparent 38px)}
+
+/* ============================================================
+   CRĂCIUN 01 – Un fior de Crăciun (lichior de gutui)
+   ============================================================ */
+#c1{background:radial-gradient(circle at 76% 56%,#c96f2c 0,#7a2416 34%,var(--wine-deep) 80%)}
+#c1 .glow{width:720px;height:720px;left:480px;top:200px}
+#c1 .product{right:150px;--h:820px}
+
+/* ============================================================
+   CRĂCIUN 02 – Afară ninge. Înăuntru, un fior. (lichior de gutui)
+   ============================================================ */
+#c2{background:linear-gradient(180deg,var(--night) 0,#132a40 60%,#1f3a55 100%);--accent:#f3b56a}
+#c2 .glow{width:760px;height:760px;left:430px;top:180px;--glow:rgba(243,160,80,.38)}
+#c2 .copy{--copy-top:300px}
+#c2 .product{right:200px;--floor:120px;--h:800px;--shadow:0}
+#c2 .drift{left:0;bottom:0;width:100%;height:230px}
+#c2 .legal{color:#30465c;opacity:.85}
+
+/* ============================================================
+   CRĂCIUN 03 – Roșul sărbătorilor (Berry Sangria)
+   ============================================================ */
+#c3{background:radial-gradient(circle at 72% 55%,#b02a3c 0,var(--wine) 42%,var(--wine-deep) 100%)}
+#c3 .title{font-size:88px}
+#c3 .glow{width:700px;height:700px;left:470px;top:220px;--glow:rgba(255,170,150,.3)}
+#c3 .product{right:150px;--h:760px}
+
+/* ============================================================
+   CRĂCIUN 04 – Singur sau împreună (toată gama)
+   ============================================================ */
+#c4{background:radial-gradient(ellipse at 50% 72%,#1f5a40 0,var(--pine) 46%,var(--pine-deep) 100%)}
+#c4 .logo{left:50%;margin-left:-85px;--logo-w:170px;top:52px}
+#c4 .copy{--copy-top:182px}
+#c4 .copy > * + *{margin-top:16px}
+#c4 .title{font-size:84px}
+#c4 .text{--text-w:820px}
+#c4 .table{left:0;right:0;bottom:0;height:196px;background:linear-gradient(#0f3022,#05120c);border-top:1px solid rgba(236,213,155,.25)}
+#c4 .lineup{--floor:150px;--gap:46px}
+
+/* ============================================================
+   CRĂCIUN 05 – Crăciun fericit! (lichior de gutui)
+   ============================================================ */
+#c5{background:radial-gradient(circle at 28% 58%,#8a1e2e 0,#4a0d18 46%,#1e0409 100%)}
+#c5 .glow{width:640px;height:640px;left:-30px;top:260px}
+#c5 .product{left:212px;--h:860px}
+#c5 .greeting{left:500px;width:520px;top:236px;text-align:center}
+#c5 .greeting .logo{position:static;display:block;margin:0 auto 40px;width:300px}
+#c5 .greeting .title{font-size:112px}
+#c5 .greeting .text{margin:30px auto 0;--text-w:420px}
+
+/* ============================================================
+   GENERAL 01 – Lichior de gutui (fotografia oficială Fior)
+   ============================================================ */
+#g1{background:var(--peach);color:#4a2410}
+#g1 .photo{left:0;bottom:0;width:100%;-webkit-mask-image:linear-gradient(transparent 0,#000 110px);mask-image:linear-gradient(transparent 0,#000 110px)}
+#g1 .logo{left:50%;margin-left:-78px;--logo-w:156px;top:50px}
+#g1 .copy{--copy-top:170px}
+#g1 .copy > * + *{margin-top:18px}
+#g1 .title{font-size:62px;line-height:1.12}
+#g1 .legal{color:var(--cream);opacity:.9;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+
+/* ============================================================
+   GENERAL 02 / 03 – Berry Sangria, Elderberry Hugo (same layout)
+   ============================================================ */
+.hero .product{right:160px;--h:840px;--floor:100px}
+.hero .glow{width:760px;height:760px;left:420px;top:170px;--glow:rgba(255,255,255,.55)}
+#g2{background:radial-gradient(circle at 70% 52%,#fde8e2 0,var(--rose) 48%,#e2a196 100%);color:#4a0f1c;--accent:var(--raspberry)}
+#g3{background:radial-gradient(circle at 70% 52%,#fafbe9 0,var(--elder) 48%,#c9d48f 100%);color:#1d3f20;--accent:var(--elder-green)}
+
+/* ============================================================
+   GENERAL 04 – Hard Lemonade (cele patru arome)
+   ============================================================ */
+#g4{color:#2d2416;--accent:var(--lemon-dark);background:
+  linear-gradient(116deg,transparent 18%,rgba(255,251,240,.75) 28%,transparent 40%),
+  linear-gradient(116deg,transparent 46%,rgba(255,251,240,.55) 54%,transparent 63%),
+  linear-gradient(#e9dcc6,#efe5d4 70%)}
+#g4 .table{left:0;right:0;bottom:0;height:180px;background:linear-gradient(#f6efe3,#e9dfcf);box-shadow:0 -1px 0 rgba(120,90,40,.15)}
+#g4 .logo{left:50%;margin-left:-78px;--logo-w:156px;top:50px}
+#g4 .copy{--copy-top:176px}
+#g4 .copy > * + *{margin-top:14px}
+#g4 .text{--text-w:800px}
+#g4 .lineup{--floor:160px;--gap:74px}
+
+/* ============================================================
+   GENERAL 05 – Fiecare detaliu contează (lichior de gutui)
+   ============================================================ */
+#g5{background:radial-gradient(circle at 70% 50%,#f08a45 0,var(--quince) 40%,var(--quince-deep) 100%)}
+#g5 .glow{width:700px;height:700px;left:460px;top:200px;--glow:rgba(255,220,160,.45)}
+#g5 .product{right:160px;--h:860px;--floor:100px}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     SVG sprite – gold line art in the style of the Fior labels
+     ============================================================ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6e2a6"/><stop offset=".45" stop-color="#c9a55a"/><stop offset=".7" stop-color="#ecd59b"/><stop offset="1" stop-color="#8f6f2e"/>
+    </linearGradient>
+    <radialGradient id="g-ornament-red" cx=".35" cy=".35" r=".75">
+      <stop offset="0" stop-color="#e8576a"/><stop offset=".55" stop-color="#a3182c"/><stop offset="1" stop-color="#3a0710"/>
+    </radialGradient>
+    <radialGradient id="g-ornament-gold" cx=".35" cy=".35" r=".75">
+      <stop offset="0" stop-color="#fff3cc"/><stop offset=".5" stop-color="#c9a55a"/><stop offset="1" stop-color="#6b4f1e"/>
+    </radialGradient>
+    <linearGradient id="g-snow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#bccbda"/>
+    </linearGradient>
+
+    <symbol id="sparkle" viewBox="0 0 100 100">
+      <path fill="currentColor" d="M50 0C53 35 65 47 100 50C65 53 53 65 50 100C47 65 35 53 0 50C35 47 47 35 50 0Z"/>
+    </symbol>
+
+    <symbol id="snowflake" viewBox="0 0 100 100">
+      <g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round">
+        <path id="snowflake-arm" d="M50 50V6M50 20L39 10M50 20L61 10M50 34L42 26M50 34L58 26"/>
+        <use href="#snowflake-arm" transform="rotate(60 50 50)"/>
+        <use href="#snowflake-arm" transform="rotate(120 50 50)"/>
+        <use href="#snowflake-arm" transform="rotate(180 50 50)"/>
+        <use href="#snowflake-arm" transform="rotate(240 50 50)"/>
+        <use href="#snowflake-arm" transform="rotate(300 50 50)"/>
+      </g>
+    </symbol>
+
+    <symbol id="ornament" viewBox="0 0 100 130">
+      <rect x="40" y="6" width="20" height="16" rx="3" fill="url(#g-gold)"/>
+      <circle cx="50" cy="72" r="48" style="fill:var(--ornament-fill,url(#g-ornament-red))"/>
+      <ellipse cx="34" cy="54" rx="10" ry="16" fill="#fff" opacity=".35" transform="rotate(30 34 54)"/>
+    </symbol>
+
+    <symbol id="quince-branch" viewBox="0 0 300 320">
+      <g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 20C80 60 140 80 200 150C230 185 250 230 262 300"/>
+        <path d="M90 62C80 30 100 8 130 4C134 34 118 58 90 62Z"/><path d="M90 62C104 40 118 22 130 4"/>
+        <path d="M170 120C200 100 236 104 256 124C232 146 196 146 170 120Z"/><path d="M170 120C200 118 230 122 256 124"/>
+        <path d="M232 214C250 196 278 196 294 210C276 228 250 230 232 214Z"/><path d="M232 214C254 210 274 208 294 210"/>
+        <path d="M150 100C148 112 146 122 140 132"/>
+        <path d="M140 132C110 130 92 158 92 190C92 236 118 268 150 268C186 268 206 236 202 196C199 162 176 134 140 132Z"/>
+        <path d="M146 268L140 278M150 268V280M154 268L160 278"/>
+        <path d="M178 162C190 180 192 208 184 234M166 152C178 174 180 206 172 238M108 162C116 152 126 148 136 148"/>
+      </g>
+    </symbol>
+
+    <symbol id="citrus" viewBox="0 0 100 100">
+      <g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <circle cx="50" cy="50" r="46"/><circle cx="50" cy="50" r="40"/><circle cx="50" cy="50" r="4"/>
+        <path id="citrus-segment" d="M50 46V13"/>
+        <use href="#citrus-segment" transform="rotate(45 50 50)"/><use href="#citrus-segment" transform="rotate(90 50 50)"/>
+        <use href="#citrus-segment" transform="rotate(135 50 50)"/><use href="#citrus-segment" transform="rotate(180 50 50)"/>
+        <use href="#citrus-segment" transform="rotate(225 50 50)"/><use href="#citrus-segment" transform="rotate(270 50 50)"/>
+        <use href="#citrus-segment" transform="rotate(315 50 50)"/>
+      </g>
+    </symbol>
+
+    <symbol id="cinnamon" viewBox="0 0 200 90">
+      <g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <g id="cinnamon-stick">
+          <path d="M24 14H176M24 36H176"/>
+          <path d="M176 14C184 14 186 36 176 36"/>
+          <path d="M24 14C12 14 10 36 24 36C32 36 33 24 26 22C21 21 19 27 23 29"/>
+          <path d="M60 25H96M118 27H150"/>
+        </g>
+        <use href="#cinnamon-stick" transform="translate(10 34) rotate(-5 100 25)"/>
+      </g>
+    </symbol>
+
+    <symbol id="berry" viewBox="0 0 60 74">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M30 18L18 9M30 18L42 9M30 18V3M30 18L23 5M30 18L37 5"/>
+        <circle cx="16" cy="26" r="7"/><circle cx="30" cy="25" r="7"/><circle cx="44" cy="26" r="7"/>
+        <circle cx="10" cy="38" r="7"/><circle cx="23" cy="38" r="7"/><circle cx="37" cy="38" r="7"/><circle cx="50" cy="38" r="7"/>
+        <circle cx="16" cy="50" r="7"/><circle cx="30" cy="50" r="7"/><circle cx="44" cy="50" r="7"/>
+        <circle cx="23" cy="62" r="7"/><circle cx="37" cy="62" r="7"/>
+      </g>
+    </symbol>
+
+    <g id="elder-blossom"><circle cx="0" cy="-4.6" r="3.6"/><circle cx="4.4" cy="-1.4" r="3.6"/><circle cx="2.7" cy="3.7" r="3.6"/><circle cx="-2.7" cy="3.7" r="3.6"/><circle cx="-4.4" cy="-1.4" r="3.6"/></g>
+    <symbol id="elderflower" viewBox="0 0 160 150">
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M80 148V112M80 112L44 84M80 112L64 76M80 112L96 76M80 112L116 84"/>
+        <path d="M44 84L22 56M44 84L35 46M44 84L48 38M44 84L42 62"/>
+        <path d="M64 76L61 33M64 76L74 30M64 76L58 52M64 76L74 47"/>
+        <path d="M96 76L87 30M96 76L100 33M96 76L90 47M96 76L106 52"/>
+        <path d="M116 84L113 38M116 84L126 46M116 84L139 57M116 84L122 62"/>
+      </g>
+      <g fill="none" stroke="currentColor" stroke-width="1.6">
+        <use href="#elder-blossom" x="22" y="56"/><use href="#elder-blossom" x="35" y="46"/><use href="#elder-blossom" x="48" y="38"/>
+        <use href="#elder-blossom" x="61" y="33"/><use href="#elder-blossom" x="74" y="30"/><use href="#elder-blossom" x="87" y="30"/>
+        <use href="#elder-blossom" x="100" y="33"/><use href="#elder-blossom" x="113" y="38"/><use href="#elder-blossom" x="126" y="46"/>
+        <use href="#elder-blossom" x="139" y="57"/><use href="#elder-blossom" x="42" y="62"/><use href="#elder-blossom" x="58" y="52"/>
+        <use href="#elder-blossom" x="74" y="47"/><use href="#elder-blossom" x="90" y="47"/><use href="#elder-blossom" x="106" y="52"/>
+        <use href="#elder-blossom" x="122" y="62"/>
+      </g>
+    </symbol>
+
+    <symbol id="mint" viewBox="0 0 70 110">
+      <g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M35 105C10 80 4 40 35 6C66 40 60 80 35 105Z"/>
+        <path d="M35 105V14M35 82L20 66M35 82L50 66M35 62L22 46M35 62L48 46M35 42L27 30M35 42L43 30"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ================= CRĂCIUN 01 ================= -->
+<section class="banner banner--dark" id="c1" data-file="craciun-01-un-fior-de-craciun">
+  <div class="bokeh"></div>
+  <div class="snow" data-flakes="110"></div>
+  <span class="hang" style="--x:620px;--len:120px;--s:74px"><svg viewBox="0 0 100 130"><use href="#ornament" style="--ornament-fill:url(#g-ornament-gold)"/></svg></span>
+  <span class="hang" style="--x:968px;--len:150px;--s:86px"><svg viewBox="0 0 100 130"><use href="#ornament"/></svg></span>
+
+  <img class="logo" src="imagini/logo-fior-auriu.png" alt="Fior">
+  <div class="copy">
+    <p class="eyebrow">Lichior de gutui</p>
+    <h1 class="title">Un fior<br>de <em>Crăciun.</em></h1>
+    <p class="text">Cald, catifelat și auriu, ca lumina din geam în seara de Ajun.</p>
+  </div>
+
+  <div class="glow"></div>
+  <figure class="product"><img src="imagini/lichior-gutui.png" alt="Fior Lichior de gutui"></figure>
+  <span class="deco" style="--x:700px;--y:330px;--s:40px;--c:var(--gold-light);--o:.9"><svg viewBox="0 0 100 100"><use href="#sparkle"/></svg></span>
+  <span class="deco" style="--x:990px;--y:560px;--s:28px;--c:var(--gold-light);--o:.8"><svg viewBox="0 0 100 100"><use href="#sparkle"/></svg></span>
+  <p class="legal">Consumați cu responsabilitate!</p>
+</section>
+
+<!-- ================= CRĂCIUN 02 ================= -->
+<section class="banner banner--dark" id="c2" data-file="craciun-02-afara-ninge">
+  <div class="glow"></div>
+  <div class="snow" data-flakes="240"></div>
+  <span class="deco" style="--x:640px;--y:140px;--s:70px;--c:var(--cream);--o:.18;--r:12deg"><svg viewBox="0 0 100 100"><use href="#snowflake"/></svg></span>
+  <span class="deco" style="--x:960px;--y:250px;--s:50px;--c:var(--cream);--o:.15"><svg viewBox="0 0 100 100"><use href="#snowflake"/></svg></span>
+
+  <img class="logo" src="imagini/logo-fior-crem.png" alt="Fior">
+  <div class="copy">
+    <h1 class="title">Afară ninge.<br><em>Înăuntru,<br>un fior.</em></h1>
+    <p class="text">Lichior de gutui, pentru serile lungi și liniștite de iarnă.</p>
+  </div>
+
+  <figure class="product"><img src="imagini/lichior-gutui.png" alt="Fior Lichior de gutui"></figure>
+  <svg class="drift" viewBox="0 0 1080 230" preserveAspectRatio="none" aria-hidden="true">
+    <path fill="url(#g-snow)" d="M0 120C140 70 260 110 380 90C520 66 640 120 780 96C900 76 1000 100 1080 84V230H0Z"/>
+    <path fill="#eef3f8" d="M0 172C160 132 300 172 460 152C640 130 760 178 920 152C990 142 1040 152 1080 146V230H0Z"/>
+  </svg>
+  <p class="legal">Consumați cu responsabilitate!</p>
+</section>
+
+<!-- ================= CRĂCIUN 03 ================= -->
+<section class="banner banner--dark" id="c3" data-file="craciun-03-rosul-sarbatorilor">
+  <div class="snow" data-flakes="70" style="opacity:.6"></div>
+  <div class="glow"></div>
+  <span class="deco" style="--x:600px;--y:560px;--s:270px;--o:.45"><svg viewBox="0 0 100 100"><use href="#citrus"/></svg></span>
+  <span class="deco" style="--x:880px;--y:250px;--s:120px;--o:.45;--r:24deg"><svg viewBox="0 0 100 100"><use href="#citrus"/></svg></span>
+  <span class="deco" style="--x:900px;--y:500px;--s:66px;--o:.55;--r:14deg"><svg viewBox="0 0 60 74"><use href="#berry"/></svg></span>
+  <span class="deco" style="--x:640px;--y:330px;--s:54px;--o:.5;--r:-12deg"><svg viewBox="0 0 60 74"><use href="#berry"/></svg></span>
+
+  <img class="logo" src="imagini/logo-fior-auriu.png" alt="Fior">
+  <div class="copy" style="--copy-w:560px">
+    <p class="eyebrow">Berry Sangria</p>
+    <h1 class="title">Roșul<br><em>sărbătorilor.</em></h1>
+    <p class="text">Zmeură, mure, portocală și scorțișoară. Toată aroma iernii, într-o sticlă.</p>
+  </div>
+
+  <span class="deco" style="--x:540px;--y:860px;--s:250px;--o:.6;--r:-14deg"><svg viewBox="0 0 200 90"><use href="#cinnamon"/></svg></span>
+  <figure class="product"><img src="imagini/berry-sangria.png" alt="Fior Berry Sangria"></figure>
+  <span class="deco" style="--x:620px;--y:250px;--s:34px;--c:var(--gold-light);--o:.9"><svg viewBox="0 0 100 100"><use href="#sparkle"/></svg></span>
+  <p class="legal">Consumați cu responsabilitate!</p>
+</section>
+
+<!-- ================= CRĂCIUN 04 ================= -->
+<section class="banner banner--dark" id="c4" data-file="craciun-04-singur-sau-impreuna">
+  <div class="bokeh"></div>
+  <div class="snow" data-flakes="90" style="opacity:.6"></div>
+  <div class="table"></div>
+
+  <img class="logo" src="imagini/logo-fior-auriu.png" alt="Fior">
+  <div class="copy copy--center">
+    <h1 class="title">Singur sau <em>împreună.</em></h1>
+    <p class="text">De sărbători, toată familia Fior se adună la aceeași masă.</p>
+  </div>
+
+  <div class="lineup">
+    <figure class="product"><img src="imagini/hl-zmeura-lamaie.png" alt="Fior Hard Lemonade Zmeură și Lămâie" style="--h:390px"></figure>
+    <figure class="product"><img src="imagini/berry-sangria.png" alt="Fior Berry Sangria" style="--h:505px"></figure>
+    <figure class="product"><img src="imagini/lichior-gutui.png" alt="Fior Lichior de gutui" style="--h:560px"></figure>
+    <figure class="product"><img src="imagini/elderberry-hugo.png" alt="Fior Elderberry Hugo" style="--h:490px"></figure>
+    <figure class="product"><img src="imagini/hl-lamaie-menta.png" alt="Fior Hard Lemonade Lămâie și Mentă" style="--h:390px"></figure>
+  </div>
+  <span class="deco" style="--x:120px;--y:960px;--s:30px;--c:var(--gold-light);--o:.8"><svg viewBox="0 0 100 100"><use href="#sparkle"/></svg></span>
+  <span class="deco" style="--x:930px;--y:975px;--s:24px;--c:var(--gold-light);--o:.7"><svg viewBox="0 0 100 100"><use href="#sparkle"/></svg></span>
+  <p class="legal">Consumați cu responsabilitate!</p>
+</section>
+
+<!-- ================= CRĂCIUN 05 ================= -->
+<section class="banner banner--dark" id="c5" data-file="craciun-05-craciun-fericit">
+  <div class="snow" data-flakes="120"></div>
+  <div class="glow"></div>
+  <span class="hang" style="--x:96px;--len:210px;--s:80px"><svg viewBox="0 0 100 130"><use href="#ornament"/></svg></span>
+  <span class="hang" style="--x:400px;--len:70px;--s:72px"><svg viewBox="0 0 100 130"><use href="#ornament" style="--ornament-fill:url(#g-ornament-gold)"/></svg></span>
+
+  <figure class="product"><img src="imagini/lichior-gutui.png" alt="Fior Lichior de gutui"></figure>
+  <div class="greeting">
+    <img class="logo" src="imagini/logo-fior-auriu.png" alt="Fior">
+    <h1 class="title">Crăciun<br><em>fericit!</em></h1>
+    <p class="text">Să ai parte de sărbători calde, liniștite și pline de fiori frumoși.</p>
+  </div>
+  <span class="deco" style="--x:440px;--y:300px;--s:36px;--c:var(--gold-light);--o:.9"><svg viewBox="0 0 100 100"><use href="#sparkle"/></svg></span>
+  <span class="deco" style="--x:980px;--y:150px;--s:26px;--c:var(--gold-light);--o:.7"><svg viewBox="0 0 100 100"><use href="#sparkle"/></svg></span>
+  <p class="legal">Consumați cu responsabilitate!</p>
+</section>
+
+<!-- ================= GENERAL 01 ================= -->
+<section class="banner" id="g1" data-file="general-01-lichior-de-gutui">
+  <img class="photo" src="imagini/foto-lichior-gutui.jpg" alt="Fior Lichior de gutui cu o gutuie">
+  <img class="logo" src="imagini/logo-fior.png" alt="Fior">
+  <div class="copy copy--center">
+    <p class="eyebrow">Lichior de gutui</p>
+    <h1 class="title">Gust tandru și delicat,<br><em>așa cum ești și tu.</em></h1>
+  </div>
+  <p class="legal">Consumați cu responsabilitate!</p>
+</section>
+
+<!-- ================= GENERAL 02 ================= -->
+<section class="banner hero" id="g2" data-file="general-02-berry-sangria">
+  <div class="glow"></div>
+  <span class="deco" style="--x:600px;--y:600px;--s:250px;--c:var(--raspberry);--o:.35"><svg viewBox="0 0 100 100"><use href="#citrus"/></svg></span>
+  <span class="deco" style="--x:900px;--y:230px;--s:80px;--c:var(--raspberry);--o:.45;--r:16deg"><svg viewBox="0 0 60 74"><use href="#berry"/></svg></span>
+  <span class="deco" style="--x:640px;--y:250px;--s:62px;--c:var(--raspberry);--o:.4;--r:-12deg"><svg viewBox="0 0 60 74"><use href="#berry"/></svg></span>
+  <span class="deco" style="--x:940px;--y:640px;--s:90px;--c:var(--raspberry);--o:.45;--r:8deg"><svg viewBox="0 0 60 74"><use href="#berry"/></svg></span>
+
+  <img class="logo" src="imagini/logo-fior.png" alt="Fior">
+  <div class="copy">
+    <p class="eyebrow">Cocktail ready to drink</p>
+    <h1 class="title">Berry<br><em>Sangria</em></h1>
+    <p class="text">Zmeură, mure, portocală și scorțișoară, într-un cocktail gata de servit.</p>
+    <div class="pills"><span class="pill">Zero zahăr</span><span class="pill">750 ml</span></div>
+  </div>
+
+  <span class="deco" style="--x:540px;--y:860px;--s:240px;--c:var(--raspberry);--o:.45;--r:-14deg"><svg viewBox="0 0 200 90"><use href="#cinnamon"/></svg></span>
+  <figure class="product"><img src="imagini/berry-sangria.png" alt="Fior Berry Sangria"></figure>
+  <p class="legal">Consumați cu responsabilitate!</p>
+</section>
+
+<!-- ================= GENERAL 03 ================= -->
+<section class="banner hero" id="g3" data-file="general-03-elderberry-hugo">
+  <div class="glow"></div>
+  <span class="deco" style="--x:810px;--y:150px;--s:250px;--c:var(--elder-green);--o:.4"><svg viewBox="0 0 160 150"><use href="#elderflower"/></svg></span>
+  <span class="deco" style="--x:540px;--y:800px;--s:190px;--c:var(--elder-green);--o:.4;--r:-12deg"><svg viewBox="0 0 160 150"><use href="#elderflower"/></svg></span>
+  <span class="deco" style="--x:900px;--y:650px;--s:170px;--c:var(--elder-green);--o:.4"><svg viewBox="0 0 100 100"><use href="#citrus"/></svg></span>
+  <span class="deco" style="--x:640px;--y:300px;--s:80px;--c:var(--elder-green);--o:.45;--r:-28deg"><svg viewBox="0 0 70 110"><use href="#mint"/></svg></span>
+
+  <img class="logo" src="imagini/logo-fior.png" alt="Fior">
+  <div class="copy">
+    <p class="eyebrow">Cocktail ready to drink</p>
+    <h1 class="title">Elderberry<br><em>Hugo</em></h1>
+    <p class="text">Flori de soc, lămâie și mentă. Răcoros, ușor și fără zahăr.</p>
+    <div class="pills"><span class="pill">Zero zahăr</span><span class="pill">750 ml</span></div>
+  </div>
+
+  <figure class="product"><img src="imagini/elderberry-hugo.png" alt="Fior Elderberry Hugo"></figure>
+  <span class="deco" style="--x:970px;--y:470px;--s:66px;--c:var(--elder-green);--o:.45;--r:24deg"><svg viewBox="0 0 70 110"><use href="#mint"/></svg></span>
+  <p class="legal">Consumați cu responsabilitate!</p>
+</section>
+
+<!-- ================= GENERAL 04 ================= -->
+<section class="banner" id="g4" data-file="general-04-hard-lemonade">
+  <div class="table"></div>
+  <img class="logo" src="imagini/logo-fior.png" alt="Fior">
+  <div class="copy copy--center">
+    <h1 class="title">Hard <em>Lemonade</em></h1>
+    <p class="text">Patru arome răcoritoare. Un singur fior.</p>
+  </div>
+
+  <div class="lineup">
+    <figure class="product product--cast"><img src="imagini/hl-lamaie-verde-ghimbir.png" alt="Fior Hard Lemonade Lămâie verde și ghimbir" style="--h:520px"><figcaption>Lămâie verde<br>și ghimbir</figcaption></figure>
+    <figure class="product product--cast"><img src="imagini/hl-zmeura-lamaie.png" alt="Fior Hard Lemonade Zmeură și lămâie" style="--h:520px"><figcaption>Zmeură<br>și lămâie</figcaption></figure>
+    <figure class="product product--cast"><img src="imagini/hl-lamaie-menta.png" alt="Fior Hard Lemonade Lămâie și mentă" style="--h:520px"><figcaption>Lămâie<br>și mentă</figcaption></figure>
+    <figure class="product product--cast"><img src="imagini/hl-soc-lamaie.png" alt="Fior Hard Lemonade Soc și lămâie" style="--h:520px"><figcaption>Soc<br>și lămâie</figcaption></figure>
+  </div>
+  <p class="legal">Consumați cu responsabilitate!</p>
+</section>
+
+<!-- ================= GENERAL 05 ================= -->
+<section class="banner banner--dark" id="g5" data-file="general-05-fiecare-detaliu-conteaza">
+  <div class="glow"></div>
+  <span class="deco" style="--x:440px;--y:120px;--s:480px;--c:var(--gold-light);--o:.45"><svg viewBox="0 0 300 320"><use href="#quince-branch"/></svg></span>
+
+  <img class="logo" src="imagini/logo-fior-crem.png" alt="Fior">
+  <div class="copy">
+    <p class="eyebrow">Fiecare detaliu contează</p>
+    <h1 class="title">Din gutui<br><em>românești.</em></h1>
+    <ul class="facts">
+      <li>Lichior nefiltrat</li>
+      <li>Fără arome adăugate</li>
+      <li>Fără coloranți</li>
+      <li>Realizat prin metode artizanale</li>
+    </ul>
+  </div>
+
+  <figure class="product"><img src="imagini/lichior-gutui.png" alt="Fior Lichior de gutui"></figure>
+  <p class="legal">Consumați cu responsabilitate!</p>
+</section>
+
+<script>
+  // Seeded snowfall: looks random, but every export renders identically.
+  document.querySelectorAll('.snow').forEach((layer, index) => {
+    let seed = 7 + index * 101;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const count = Number(layer.dataset.flakes || 120);
+    const flakes = Array.from({ length: count }, () =>
+      `<circle cx="${Math.round(rand() * 1080)}" cy="${Math.round(rand() * 1080)}" r="${(0.8 + rand() * 2.8).toFixed(1)}" fill-opacity="${(0.2 + rand() * 0.6).toFixed(2)}"/>`
+    ).join('');
+    layer.innerHTML = `<svg viewBox="0 0 1080 1080" fill="#fff">${flakes}</svg>`;
+  });
+
+  // Sunlit cast shadow behind products marked .product--cast.
+  document.querySelectorAll('.product--cast').forEach((product) => {
+    const image = product.querySelector('img');
+    const shadow = image.cloneNode();
+    shadow.className = 'product__cast';
+    shadow.alt = '';
+    product.prepend(shadow);
+  });
+</script>
+</body>
+</html>
