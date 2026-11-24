@@ -35,6 +35,13 @@ function curtain(open) {
   ctx.fillRect(0, H - bar, W, 2);
 }
 
+// One italic gold line that rises in at `from` and fades out before `to`.
+function phrase(str, local, from, to, y = 1500) {
+  const out = 1 - progress(local, to - 0.3, 0.3);
+  if (local < from || out <= 0) return;
+  riseText(str, 540, y, local, from, { size: 108, italic: true, gold: true, shadow: 30, maxWidth: 960, alpha: out, duration: 0.5 });
+}
+
 // A full-bleed footage scene. shot(local, duration) -> { clip, position, fx, fy, zoom }.
 function footageScene(shot, drawWords, look = LOOK) {
   return {
@@ -66,8 +73,11 @@ const sceneSteps = footageScene(
   // speed ramp: quick over the dress and the tilt up, slow motion once her face is in frame
   (local, duration) => ({ clip: 'trepte', position: 20 + FPS * (2.6 * local - (1.8 * local * local) / (2 * duration)), fx: lerp(0.52, 0.47, easeInOut(local / duration)), zoom: 1 }),
   (local) => {
-    scrim(0.3, 0.7);
-    trackText('LICHIOR  ·  COCKTAILS  ·  HARD LEMONADE', 540, 1500, local, 0.6, SMALL);
+    scrim(0.3, 0.75);
+    // three words from the brand's own description, one per bar of the music
+    phrase('Artizanal.', local, 0.3, 1.5);
+    phrase('Din fructe românești.', local, 1.5, 2.7);
+    phrase('Premium.', local, 2.7, 4.2);
   },
 );
 
