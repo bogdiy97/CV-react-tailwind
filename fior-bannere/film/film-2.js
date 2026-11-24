@@ -107,7 +107,7 @@ function dropText(cut, cl) {
 }
 
 function sceneDrop(local, duration, out) {
-  const index = Math.min(DROP_CUTS.length - 1, Math.floor(local / BEAT));
+  const index = beatIndex(local, BEAT, DROP_CUTS.length - 1);
   const cut = DROP_CUTS[index];
   const cl = local - index * BEAT;
   const zoomIn = 1.16 - 0.16 * easeOut(cl / BEAT);

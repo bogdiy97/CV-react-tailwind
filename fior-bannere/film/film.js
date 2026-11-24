@@ -110,7 +110,7 @@ const CUTS = [
 const BEAT = 0.6;
 
 function sceneCuts(local) {
-  const index = Math.min(CUTS.length - 1, Math.floor(local / BEAT));
+  const index = beatIndex(local, BEAT, CUTS.length - 1);
   const cut = CUTS[index];
   const cl = local - index * BEAT;
   const image = img[cut.photo];

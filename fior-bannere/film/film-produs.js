@@ -111,7 +111,7 @@ const scenePhoto = photoScene((local, duration) => {
 });
 
 function sceneBeats(local, duration, out) {
-  const index = Math.min(7, Math.floor(local / BEAT));
+  const index = beatIndex(local, BEAT, 7);
   const cl = local - index * BEAT;
   const [card, visual] = P.beats[Math.floor(index / 2)];
   const zoomIn = 1.16 - 0.16 * easeOut(cl / BEAT);

@@ -113,7 +113,7 @@ const DROP_CUTS = [
   { clip: 'palarie', from: 112, fx: 0.48 },
 ];
 const dropStep = (local) => {
-  const beat = Math.min(7, Math.floor(local / BEAT));
+  const beat = beatIndex(local, BEAT, 7);
   return { beat, cl: local - beat * BEAT, cut: DROP_CUTS[beat - TRIPTYCH.length] };
 };
 const bandFrame = (band, index, local) => band.from + Math.max(0, local - index * BEAT) * FPS;

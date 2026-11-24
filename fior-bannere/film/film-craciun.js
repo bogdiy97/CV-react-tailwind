@@ -614,7 +614,7 @@ const GIFTS = [
 const bowOn = (item, baseY) => drawBow(item.x, baseY - item.height * 0.63, item.height * 0.27);
 
 function sceneGifts(local, duration, out) {
-  const index = Math.min(7, Math.floor(local / BEAT));
+  const index = beatIndex(local, BEAT, 7);
   const cl = local - index * BEAT;
   const [card, visual] = GIFTS[Math.floor(index / 2)];
   if (index % 2 === 0) {

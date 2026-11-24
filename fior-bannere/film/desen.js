@@ -35,6 +35,9 @@ const progress = (t, start, duration) => clamp((t - start) / duration);
 const easeOut = (p) => 1 - (1 - p) ** 3;
 const easeInOut = (p) => (p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2);
 const lerp = (a, b, p) => a + (b - a) * p;
+// Which beat `local` seconds fall in (0..last). The epsilon keeps a cut that lands exactly on a frame from
+// slipping one frame late through floating-point rounding.
+const beatIndex = (local, beat, last) => Math.min(last, Math.floor(local / beat + 1e-6));
 
 function seededRandom(seed) {
   return () => (seed = (seed * 16807) % 2147483647) / 2147483647;
