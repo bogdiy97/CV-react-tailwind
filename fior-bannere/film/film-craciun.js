@@ -258,13 +258,26 @@ function paintBranches() {
   });
 }
 
+// Runs `draw` scaled by `scale` around the point (cx, cy).
+function scaledAround(cx, cy, scale, draw) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+  ctx.translate(-cx, -cy);
+  draw();
+  ctx.restore();
+}
+
 function sceneNight(local, duration, out) {
+  // a slow push-in towards the window; the branches close to the lens move faster (parallax)
+  const push = easeInOut(local / duration);
+  const windowY = WINDOW.y + WINDOW.height / 2;
   drawInto(layer, () => {
-    drawNight(local);
-    ctx.save();
-    ctx.filter = 'blur(3px)';
-    ctx.drawImage(branchCanvas, 0, Math.sin(local * 0.9) * 6 - 6);
-    ctx.restore();
+    scaledAround(CABIN.x, windowY, 1 + 0.1 * push, () => drawNight(local));
+    scaledAround(CABIN.x, windowY, 1 + 0.32 * push, () => {
+      ctx.filter = 'blur(3px)';
+      ctx.drawImage(branchCanvas, 0, Math.sin(local * 0.9) * 6 - 6);
+    });
     riseText('Afară', 540, 560, local, 0.7, { size: 170, shadow: 30 });
     riseText('ninge.', 540, 730, local, 1.1, { size: 170, italic: true, color: '#dfeaff', shadow: 30 });
   });

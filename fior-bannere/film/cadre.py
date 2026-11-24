@@ -3,35 +3,40 @@
 Downloads https://fiordrinks.ro/wp-content/uploads/2025/04/hero-video.mp4 into film/sursa/ if it is missing,
 then writes film/cadre/<shot>/NNNN.jpg and film/cadre/index.js (frame counts). Both folders are git-ignored.
 
-Every clip is meant to play one frame per output frame (30 fps) as smooth 0.6x slow motion:
-  - shots that are real 50 fps in the source are extracted as they are (step 1);
-  - shots that are 25 fps with doubled frames keep the unique frames (step 2) and get the missing frames
-    from motion interpolation (slow 2 = 50 fps; the short pour gets slow 4 for an even slower motion).
+The source is a 50 fps file, but its shots were filmed at 25, 30, 40 and 45 fps and padded with repeated
+frames, which stutters when played back. For every shot this script drops the repeated frames and, where
+`slow` > 1, adds motion-interpolated frames. Played one frame per output frame (30 fps) the clips are smooth
+slow motion.
 
 Usage: python3 fior-bannere/film/cadre.py [shot ...]     (no arguments: all shots; takes about 15 minutes)
+Needs: ffmpeg, Pillow, numpy.
 """
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
 import urllib.request
 from pathlib import Path
 
+import numpy as np
+from PIL import Image
+
 HERE = Path(__file__).parent
 SOURCE = HERE / "sursa" / "hero-video.mp4"
 URL = "https://fiordrinks.ro/wp-content/uploads/2025/04/hero-video.mp4"
 OUT = HERE / "cadre"
 
-# name: (start s, end s, step, slow)
+# name: (start s, end s, slow) – slow multiplies the number of frames by motion interpolation.
 SHOTS = {
-    "usa": (0.10, 8.30, 1, 1),         # she walks out of the wooden door, along the columns
-    "trepte": (8.38, 14.38, 2, 2),     # down the steps, the camera tilts up to her face
-    "portret": (14.46, 18.12, 1, 1),   # close-up: face next to the bottle
-    "eticheta": (18.20, 21.30, 1, 1),  # macro: the label tilting
-    "pasi": (22.70, 26.06, 2, 2),      # heels and the red dress, bottle in hand
-    "palarie": (26.14, 31.00, 2, 2),   # portrait under the black hat
-    "masa": (31.08, 34.78, 1, 1),      # at the table with two bottles
-    "turnare": (34.86, 36.70, 2, 4),   # macro: the liqueur pours into a glass
+    "usa": (0.10, 8.30, 1),         # she walks out of the wooden door, along the columns (45 fps)
+    "trepte": (8.38, 14.38, 2),     # down the steps, the camera tilts up to her face (25 fps)
+    "portret": (14.46, 18.12, 1),   # close-up: face next to the bottle (40 fps)
+    "eticheta": (18.20, 21.30, 2),  # macro: the label tilting (30 fps)
+    "pasi": (22.70, 26.06, 2),      # heels and the red dress, bottle in hand (25 fps)
+    "palarie": (26.14, 31.00, 2),   # portrait under the black hat (25 fps)
+    "masa": (31.08, 34.78, 1),      # at the table with two bottles (30, then 50 fps)
+    "turnare": (34.86, 36.70, 4),   # macro: the liqueur pours into a glass (25 fps)
 }
 INTERPOLATE = "minterpolate=fps={fps}:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1"
 
@@ -40,19 +45,37 @@ def ffmpeg(*args):
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *args], check=True)
 
 
-def extract(name, start, end, step, slow):
+def unique_frames(frames):
+    """Drops repeated frames: those that barely differ from the previous one, compared with their neighbours."""
+    small = [np.asarray(Image.open(f).convert("L").resize((192, 108))).astype(float) for f in frames]
+    diffs = np.array([0.0] + [np.abs(a - b).mean() for a, b in zip(small[1:], small[:-1])])
+    keep = [frames[0]]
+    for i in range(1, len(frames)):
+        around = diffs[max(1, i - 12): i + 13]
+        if diffs[i] >= 0.35 * np.median(around):
+            keep.append(frames[i])
+    return keep
+
+
+def extract(name, start, end, slow):
     folder = OUT / name
-    folder.mkdir(parents=True, exist_ok=True)
-    for old in folder.glob("*.jpg"):
-        old.unlink()
-    select = ["-ss", str(start), "-to", str(end), "-i", str(SOURCE), "-vf", f"select='not(mod(n\\,{step}))'", "-vsync", "vfr", "-q:v", "3"]
-    if slow == 1:
-        ffmpeg(*select, str(folder / "%04d.jpg"))
-    else:
-        with tempfile.TemporaryDirectory() as tmp:
-            ffmpeg(*select, f"{tmp}/%04d.jpg")
-            ffmpeg("-framerate", "25", "-i", f"{tmp}/%04d.jpg", "-vf", INTERPOLATE.format(fps=25 * slow), "-q:v", "3", str(folder / "%04d.jpg"))
-    return len(list(folder.glob("*.jpg")))
+    if folder.exists():
+        shutil.rmtree(folder)
+    folder.mkdir(parents=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        raw = Path(tmp) / "raw"
+        clean = Path(tmp) / "clean"
+        raw.mkdir()
+        clean.mkdir()
+        ffmpeg("-ss", str(start), "-to", str(end), "-i", str(SOURCE), "-q:v", "2", str(raw / "%04d.jpg"))
+        frames = sorted(raw.glob("*.jpg"))
+        kept = unique_frames(frames)
+        for i, frame in enumerate(kept, start=1):
+            shutil.copy(frame, (folder if slow == 1 else clean) / f"{i:04d}.jpg")
+        if slow > 1:
+            ffmpeg("-framerate", "25", "-i", str(clean / "%04d.jpg"), "-vf", INTERPOLATE.format(fps=25 * slow), "-q:v", "3", str(folder / "%04d.jpg"))
+    count = len(list(folder.glob("*.jpg")))
+    return f"{len(frames)} source frames, {len(kept)} unique, {count} written"
 
 
 def main():
@@ -62,7 +85,7 @@ def main():
         urllib.request.urlretrieve(URL, SOURCE)
 
     for name in sys.argv[1:] or SHOTS:
-        print(f"{name}: {extract(name, *SHOTS[name])} frames", flush=True)
+        print(f"{name}: {extract(name, *SHOTS[name])}", flush=True)
 
     index = {name: len(list((OUT / name).glob("*.jpg"))) for name in SHOTS}
     (OUT / "index.js").write_text(
