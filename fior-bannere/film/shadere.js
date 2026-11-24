@@ -206,6 +206,33 @@ SHADERS.bubbles = `uniform sampler2D source; uniform float aspect; uniform float
     color = vec4(texture(source, uv).rgb + acc * amount * vec3(1.0, 0.98, 0.9), 1.0);
   }`;
 
+// Frost transition: ice crystals creep over srcA from the edges of the frame, then melt from the centre into srcB.
+SHADERS.frost = `uniform sampler2D srcA; uniform sampler2D srcB; uniform float progress; uniform float aspect;
+  float crystals(vec2 p) {
+    float v = 0.0, a = 0.55;
+    for (int i = 0; i < 5; i++) { v += a * abs(noise(p) * 2.0 - 1.0); p = p * 2.1 + vec2(3.1, 7.7); a *= 0.5; }
+    return 1.0 - v; // ridged: bright along thin branching lines
+  }
+  void main() {
+    vec2 p = vec2(uv.x * aspect, uv.y);
+    float ice = crystals(p * 7.0);
+    float veins = pow(ice, 3.0);
+    float fromEdge = clamp(length((uv - 0.5) * vec2(1.0, 1.25)) * 1.35, 0.0, 1.0);
+    float freeze = smoothstep(0.0, 0.45, progress);
+    float melt = smoothstep(0.55, 1.0, progress);
+    float growth = clamp(ice * 0.4 + (1.0 - fromEdge) * 0.75, 0.0, 1.15);  // corners freeze first
+    float thaw = clamp(ice * 0.4 + fromEdge * 0.75, 0.0, 1.15);            // the centre thaws first
+    float covered = smoothstep(growth - 0.06, growth + 0.06, freeze * 1.25);
+    float gone = smoothstep(thaw - 0.06, thaw + 0.06, melt * 1.25);
+    float amount = covered * (1.0 - gone);
+    vec2 bend = (vec2(noise(p * 34.0), noise(p * 34.0 + 9.0)) - 0.5) * 0.03 * amount; // frosted glass
+    vec3 scene = mix(texture(srcA, uv + bend).rgb, texture(srcB, uv + bend).rgb, smoothstep(0.45, 0.55, progress));
+    vec3 frost = mix(vec3(0.55, 0.68, 0.85), vec3(1.0), veins) * (0.75 + 0.5 * veins);
+    vec3 c = mix(scene, frost, amount * (0.72 + 0.28 * veins));
+    float rim = (smoothstep(0.0, 0.5, covered) * (1.0 - smoothstep(0.5, 1.0, covered)) + smoothstep(0.0, 0.5, gone) * (1.0 - smoothstep(0.5, 1.0, gone)));
+    color = vec4(c + rim * vec3(0.5, 0.6, 0.75) * 0.6, 1.0);
+  }`;
+
 // Crossfade between two frames, plus an optional warm flash.
 SHADERS.mix = `uniform sampler2D srcA; uniform sampler2D srcB; uniform float amount; uniform float flash;
   void main() {

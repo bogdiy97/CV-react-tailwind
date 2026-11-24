@@ -762,9 +762,9 @@ function sceneFinale(local, duration, out) {
 const SCENES = [
   { start: 0, end: 4.8, draw: sceneNight, zoomCenter: uvPoint(CABIN.x, WINDOW.y + WINDOW.height / 2) },
   { start: 4.8, end: 9.6, draw: sceneInside, transition: 'zoom' },
-  { start: 9.6, end: 14.4, draw: sceneTree, transition: 'burn' },
+  { start: 9.6, end: 14.4, draw: sceneTree, transition: 'frost' },
   { start: 14.4, end: 19.2, draw: sceneGifts },
-  { start: 19.2, end: 24, draw: sceneRange, transition: 'burn' },
+  { start: 19.2, end: 24, draw: sceneRange, transition: 'frost' },
   { start: 24, end: VIDEO_DURATION, draw: sceneFinale, transition: 'burn' },
 ];
 

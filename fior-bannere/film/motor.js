@@ -213,6 +213,15 @@ const TRANSITIONS = {
       gpu.pass('burn', { target: T.out, uniforms: { time: t, aspect: ASPECT, progress: easeInOut(p) }, textures: { srcA: T.frameA, srcB: T.frameB } });
     },
   },
+  // Ice creeps over the old scene, then melts into the new one.
+  frost: {
+    duration: 1.2,
+    draw(previous, next, t, p) {
+      drawScene(previous, t, T.frameA);
+      drawScene(next, t, T.frameB);
+      gpu.pass('frost', { target: T.out, uniforms: { time: t, aspect: ASPECT, progress: p }, textures: { srcA: T.frameA, srcB: T.frameB } });
+    },
+  },
   dissolve: {
     duration: 0.6,
     draw(previous, next, t, p) {
