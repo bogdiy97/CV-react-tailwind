@@ -180,19 +180,30 @@ const scenePour = footageScene(
   { ...LOOK, warmth: 0.9 },
 );
 
+// The end of the pour: the picture itself turns liquid and floods towards the gold.
+const pourFlood = {
+  clips: scenePour.clips,
+  draw(local, duration, out) {
+    scenePour.draw(local, duration, T.c);
+    gpu.pass('liquid', { target: out, uniforms: { time: local, aspect: ASPECT, amount: 1.6 * easeInOut(progress(local, duration - 1.2, 1.2)) }, textures: { source: T.c } });
+  },
+};
+
 function sceneGold(local, duration, out) {
   liquidReveal(local, out, {
     palette: PALETTES.gold,
     relief: reliefTexture,
     zoom: 1 - 0.1 * (local / duration),
-    emboss: easeInOut(progress(local, 0.2, 1.6)),
-    drain: easeInOut(progress(local, 2.4, 1.3)),
+    emboss: easeInOut(progress(local, 0.3, 1.5)),
+    drain: easeInOut(progress(local, 2.2, 1.2)),
     drawCard: () => {
       radialBackground(540, 860, 1150, [[0, '#2a190a'], [0.55, '#0c0704'], [1, '#020100']]);
       goldDust(local, 80, 31, { speed: 18, alpha: 0.6 });
-      logo(540, 860, LOGO_WIDTH, { glow: 0.55, shimmer: progress(local, 3.4, 0.8) });
-      riseText('Esența rafinamentului', 540, 1190, local, 3.3, { size: 70 });
-      riseText('în fiecare picătură.', 540, 1280, local, 3.55, { size: 70, italic: true, gold: true });
+      logo(540, 860, LOGO_WIDTH, { glow: 0.55, shimmer: progress(local, 3.2, 0.8) });
+      rule(540, 1118, 420, local, 3.0);
+      riseText('Esența rafinamentului', 540, 1200, local, 3.0, { size: 70 });
+      riseText('în fiecare picătură.', 540, 1290, local, 3.25, { size: 70, italic: true, gold: true });
+      trackText('FIORDRINKS.RO', 540, 1400, local, 3.7, { ...SMALL, size: 22, alpha: 0.8 });
     },
   });
 }
@@ -205,8 +216,8 @@ const SCENES = [
   { start: 10, end: 12, ...sceneLabel, transition: 'dissolve' },
   { start: 12, end: 16, ...sceneDrop },
   { start: 16, end: 20.5, ...sceneOrbit, transition: 'burn' },
-  { start: 20.5, end: 24, ...scenePour, transition: 'flash' },
-  { start: 24, end: VIDEO_DURATION, draw: sceneGold, transition: 'burn' },
+  { start: 20.5, end: 24, ...pourFlood, transition: 'flash' },
+  { start: 24, end: VIDEO_DURATION, draw: sceneGold, transition: 'dissolve' },
 ];
 
 function aberrationAt(t) {
