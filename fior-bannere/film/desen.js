@@ -101,6 +101,45 @@ function reveal(str, x, y, local, start, options = {}) {
   text(str, x, y + (1 - p) * 46, { ...options, alpha: p * (options.alpha ?? 1), blur: (1 - p) * 16 });
 }
 
+// A horizontal gold gradient for text about `width` px wide, centred on x.
+function goldFill(x, width) {
+  const fill = ctx.createLinearGradient(x - width / 2, 0, x + width / 2, 0);
+  [[0, '#f6e2a6'], [0.3, '#d2ad62'], [0.55, '#f8ecc4'], [0.8, '#c9a55a'], [1, '#f1dca4']].forEach(([at, color]) => fill.addColorStop(at, color));
+  return fill;
+}
+
+// Title text that slides up from behind its baseline (a mask reveal). gold: true fills it with a gold gradient.
+function riseText(str, x, y, local, start, { gold = false, duration = 0.75, ...options } = {}) {
+  const p = easeOut(progress(local, start, duration));
+  if (p <= 0) return;
+  const size = options.size || 60;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, y - size * 1.1, W, size * 1.5);
+  ctx.clip();
+  const color = gold ? goldFill(x, Math.min(960, size * str.length * 0.5)) : options.color;
+  text(str, x, y + (1 - p) * size * 1.15, { ...options, color, alpha: (options.alpha ?? 1) * Math.min(1, p * 2.5) });
+  ctx.restore();
+}
+
+// Small caps that fade in while their letter-spacing closes to `spacing`.
+function trackText(str, x, y, local, start, options = {}) {
+  const p = easeOut(progress(local, start, 0.9));
+  text(str, x, y, { ...options, spacing: (options.spacing || 0) + (1 - p) * 22, alpha: p * (options.alpha ?? 1) });
+}
+
+// A thin gold rule that grows from its centre.
+function rule(x, y, width, local, start) {
+  const p = easeOut(progress(local, start, 0.8));
+  if (p <= 0) return;
+  const line = ctx.createLinearGradient(x - width / 2, 0, x + width / 2, 0);
+  line.addColorStop(0, 'rgba(236,213,155,0)');
+  line.addColorStop(0.5, 'rgba(236,213,155,.95)');
+  line.addColorStop(1, 'rgba(236,213,155,0)');
+  ctx.fillStyle = line;
+  ctx.fillRect(x - (width * p) / 2, y, width * p, 2);
+}
+
 const scratch = makeCanvas();
 const scratchReflection = makeCanvas();
 

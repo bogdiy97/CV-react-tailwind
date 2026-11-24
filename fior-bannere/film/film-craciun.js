@@ -198,8 +198,8 @@ const snowPass = (source, out, local, amount = 1) => gpu.pass('snow', {
 function sceneNight(local, duration, out) {
   drawInto(layer, () => {
     drawNight(local);
-    reveal('Afară', 540, 560, local, 0.7, { size: 170, shadow: 30 });
-    reveal('ninge.', 540, 730, local, 1.1, { size: 170, italic: true, color: '#dfeaff', shadow: 30 });
+    riseText('Afară', 540, 560, local, 0.7, { size: 170, shadow: 30 });
+    riseText('ninge.', 540, 730, local, 1.1, { size: 170, italic: true, color: '#dfeaff', shadow: 30 });
   });
   gpu.pass('image', { target: T.a, textures: { source: layerTexture() } });
   snowPass(T.a, out, local, 0.85);
@@ -293,8 +293,8 @@ function sceneInside(local, duration, out) {
   drawInto(textLayer, () => {
     drawGlobeBase();
     goldDust(local, 90, 9, { speed: 20, alpha: 0.7 });
-    reveal('Înăuntru,', 540, 300, local, 0.7, { size: 120 });
-    reveal('un fior.', 540, 430, local, 1.0, { size: 120, italic: true, color: COLORS.goldLight });
+    riseText('Înăuntru,', 540, 300, local, 0.7, { size: 120 });
+    riseText('un fior.', 540, 430, local, 1.0, { size: 120, italic: true, gold: true });
   });
   gpu.pass('compose', { target: out, textures: { base: T.b, overlay: textTexture() } });
 }
@@ -314,8 +314,8 @@ function sceneTree(local, duration, out) {
     drawDecorations(local, 1.7);
     const gift = easeOut(progress(local, 2.0, 0.8));
     bottle(img.gutui, 830, 1500 + (1 - gift) * 60, 560, { alpha: gift, reflection: 0.25 });
-    reveal('Un fior', 540, 300, local, 2.3, { size: 130 });
-    reveal('de Crăciun.', 540, 440, local, 2.6, { size: 130, italic: true, color: COLORS.goldLight });
+    riseText('Un fior', 540, 300, local, 2.3, { size: 130 });
+    riseText('de Crăciun.', 540, 440, local, 2.6, { size: 130, italic: true, gold: true });
   });
   gpu.pass('compose', { target: T.b, textures: { base: T.a, overlay: textTexture() } });
   snowPass(T.b, out, local, 0.4);
@@ -505,8 +505,8 @@ function sceneRange(local, duration, out) {
     drawBehind: () => drawWreath(local, 540, 420, easeOut(progress(local, 0.1, 0.9))),
     drawText: () => {
       goldDust(local, 110, 23, { speed: 30, alpha: 0.7 });
-      reveal('Singur sau', 540, 400, local, 0.6, { size: 84, shadow: 20 });
-      reveal('împreună.', 540, 492, local, 0.85, { size: 84, italic: true, color: COLORS.goldLight, shadow: 20 });
+      riseText('Singur sau', 540, 400, local, 0.6, { size: 84, shadow: 20 });
+      riseText('împreună.', 540, 492, local, 0.85, { size: 84, italic: true, gold: true, shadow: 20 });
     },
   });
   snowPass(T.c, out, local, 0.4);
@@ -530,8 +530,8 @@ function sceneFinale(local, duration, out) {
   drawInto(textLayer, () => {
     drawDecorations(local, 0.2, 1 - progress(local, BURST_AT - 0.1, 0.25));
     logo(540, 860, LOGO_WIDTH, { alpha: easeOut(progress(local, 2.7, 0.6)), glow: 0.6, shimmer: progress(local, 3.2, 0.8) });
-    reveal('Crăciun fericit!', 540, 1210, local, 3.0, { size: 110, italic: true, color: COLORS.goldLight });
-    reveal('SĂRBĂTORI CU FIORI FRUMOȘI', 540, 1300, local, 3.3, SMALL);
+    riseText('Crăciun fericit!', 540, 1210, local, 3.0, { size: 110, italic: true, gold: true });
+    trackText('SĂRBĂTORI CU FIORI FRUMOȘI', 540, 1300, local, 3.3, SMALL);
   });
   gpu.pass('compose', { target: T.b, textures: { base: T.a, overlay: textTexture() } });
   const age = local - BURST_AT;

@@ -44,17 +44,17 @@ const sceneDoor = footageScene(
   (local, duration) => ({ clip: 'usa', position: 10 + local * FPS, fx: lerp(0.42, 0.5, local / duration), zoom: lerp(1, 1.06, local / duration) }),
   (local) => {
     scrim(0.45, 0.8);
-    logo(540, 230, 250, { glow: 0.3, alpha: easeOut(progress(local, 0.4, 0.8)) });
-    reveal('Esența', 540, 1340, local, 1.0, { size: 150, shadow: 30 });
-    reveal('rafinamentului', 540, 1480, local, 1.3, { size: 118, italic: true, color: COLORS.goldLight, shadow: 30 });
+    riseText('Esența', 540, 1340, local, 1.0, { size: 150, shadow: 30 });
+    riseText('rafinamentului', 540, 1480, local, 1.3, { size: 118, italic: true, gold: true, shadow: 30 });
   },
 );
 
 const sceneSteps = footageScene(
-  (local, duration) => ({ clip: 'trepte', position: 6 + local * FPS, fx: lerp(0.52, 0.47, easeInOut(local / duration)), zoom: 1 }),
+  // speed ramp: quick over the dress and the tilt up, slow motion once her face is in frame
+  (local, duration) => ({ clip: 'trepte', position: 20 + FPS * (2.6 * local - (1.8 * local * local) / (2 * duration)), fx: lerp(0.52, 0.47, easeInOut(local / duration)), zoom: 1 }),
   (local) => {
     scrim(0.3, 0.7);
-    reveal('LICHIOR  ·  COCKTAILS  ·  HARD LEMONADE', 540, 1500, local, 0.6, SMALL);
+    trackText('LICHIOR  ·  COCKTAILS  ·  HARD LEMONADE', 540, 1500, local, 0.6, SMALL);
   },
 );
 
@@ -62,7 +62,7 @@ const scenePortrait = footageScene(
   (local, duration) => ({ clip: 'portret', position: local * FPS, fx: lerp(0.5, 0.58, easeInOut(local / duration)), zoom: 1 }),
   (local) => {
     scrim(0.25, 0.75);
-    reveal('Fiecare detaliu', 540, 1450, local, 0.3, { size: 112, shadow: 30 });
+    riseText('Fiecare detaliu', 540, 1450, local, 0.3, { size: 112, shadow: 30 });
   },
 );
 
@@ -70,18 +70,18 @@ const sceneLabel = footageScene(
   (local, duration) => ({ clip: 'eticheta', position: local * FPS, fx: lerp(0.46, 0.55, local / duration), zoom: 1 }),
   (local) => {
     scrim(0.25, 0.75);
-    reveal('contează.', 540, 1450, local, 0.2, { size: 128, italic: true, color: COLORS.goldLight, shadow: 30 });
+    riseText('contează.', 540, 1450, local, 0.2, { size: 128, italic: true, gold: true, shadow: 30 });
   },
 );
 
 const DROP_CUTS = [
   { clip: 'pasi', from: 0, fx: 0.52 },
   { bottles: ['gutui'], name: 'Lichior de gutui', label: 'NEFILTRAT · DIN FRUCTE ROMÂNEȘTI', stage: STAGES.gutui },
-  { clip: 'palarie', from: 55, fx: 0.48 },
+  { clip: 'palarie', from: 110, fx: 0.48 },
   { bottles: ['sangria'], name: 'Berry Sangria', label: 'COCKTAIL READY TO DRINK', stage: STAGES.sangria },
-  { clip: 'pasi', from: 56, fx: 0.56 },
+  { clip: 'pasi', from: 112, fx: 0.56 },
   { bottles: ['hugo'], name: 'Elderberry Hugo', label: 'COCKTAIL READY TO DRINK', stage: STAGES.hugo },
-  { clip: 'masa', from: 165, fx: 0.5 },
+  { clip: 'masa', from: 165, fx: 0.5, fy: 0.85, zoom: 1.3 },
   { bottles: HL_ALL, name: 'Hard Lemonade', label: 'PATRU AROME', stage: STAGES.lemon },
 ];
 const dropCut = (local) => {
@@ -98,7 +98,7 @@ const sceneDrop = {
     const { cut, cl } = dropCut(local);
     const zoomIn = 1.14 - 0.14 * easeOut(cl / BEAT);
     if (cut.clip) {
-      drawInto(layer, () => drawClip(cut.clip, cut.from + cl * FPS, { fx: cut.fx, zoom: zoomIn }));
+      drawInto(layer, () => drawClip(cut.clip, cut.from + cl * FPS, { fx: cut.fx, fy: cut.fy, zoom: (cut.zoom || 1) * zoomIn }));
       gpu.pass('grade', { target: T.c, uniforms: LOOK, textures: { source: layerTexture() } });
     } else {
       bottleCut(cl, T.c, { ...cut, zoomIn });
@@ -114,18 +114,18 @@ function sceneOrbit(local, duration, out) {
     ring: RING,
     drawText: () => {
       goldDust(local, 110, 23, { speed: 30, alpha: 0.7 });
-      reveal('Singur sau', 540, 300, local, 0.5, { size: 120 });
-      reveal('împreună.', 540, 430, local, 0.75, { size: 120, italic: true, color: COLORS.goldLight });
+      riseText('Singur sau', 540, 300, local, 0.5, { size: 120 });
+      riseText('împreună.', 540, 430, local, 0.75, { size: 120, italic: true, gold: true });
     },
   });
 }
 
 const scenePour = footageScene(
-  (local, duration) => ({ clip: 'turnare', position: (local / duration) * (CLIP_FRAMES.turnare - 2), fx: 0.38, zoom: lerp(1.08, 1, local / duration) }),
+  (local, duration) => ({ clip: 'turnare', position: 8 + local * FPS * 1.4, fx: 0.38, zoom: lerp(1.08, 1, local / duration) }),
   (local) => {
     scrim(0.55, 0.6);
-    reveal('în fiecare', 540, 330, local, 0.5, { size: 130, shadow: 30 });
-    reveal('picătură.', 540, 470, local, 0.8, { size: 130, italic: true, color: COLORS.goldLight, shadow: 30 });
+    riseText('în fiecare', 540, 330, local, 0.5, { size: 130, shadow: 30 });
+    riseText('picătură.', 540, 470, local, 0.8, { size: 130, italic: true, gold: true, shadow: 30 });
   },
   { ...LOOK, warmth: 0.9 },
 );
@@ -141,8 +141,8 @@ function sceneGold(local, duration, out) {
       radialBackground(540, 860, 1150, [[0, '#2a190a'], [0.55, '#0c0704'], [1, '#020100']]);
       goldDust(local, 80, 31, { speed: 18, alpha: 0.6 });
       logo(540, 860, LOGO_WIDTH, { glow: 0.55, shimmer: progress(local, 3.4, 0.8) });
-      reveal('Esența rafinamentului', 540, 1190, local, 3.3, { size: 70 });
-      reveal('în fiecare picătură.', 540, 1280, local, 3.55, { size: 70, italic: true, color: COLORS.goldLight });
+      riseText('Esența rafinamentului', 540, 1190, local, 3.3, { size: 70 });
+      riseText('în fiecare picătură.', 540, 1280, local, 3.55, { size: 70, italic: true, gold: true });
     },
   });
 }
