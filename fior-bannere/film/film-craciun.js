@@ -445,6 +445,29 @@ function sceneInside(local, duration, out) {
   gpu.pass('compose', { target: out, textures: { base: T.b, overlay: textTexture() } });
 }
 
+// A wrapped present standing on `baseY`: box, lid, ribbon and a bow.
+function drawGift(x, baseY, width, height, [dark, mid, light], ribbon) {
+  const paper = ctx.createLinearGradient(x - width / 2, 0, x + width / 2, 0);
+  paper.addColorStop(0, dark);
+  paper.addColorStop(0.45, mid);
+  paper.addColorStop(1, dark);
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.5)';
+  ctx.shadowBlur = 30;
+  ctx.shadowOffsetY = 10;
+  ctx.fillStyle = paper;
+  ctx.fillRect(x - width / 2, baseY - height, width, height);
+  ctx.restore();
+  ctx.fillStyle = light;
+  ctx.fillRect(x - width / 2 - 8, baseY - height - 4, width + 16, height * 0.2);
+  ctx.fillStyle = ribbon;
+  ctx.fillRect(x - width * 0.09, baseY - height - 4, width * 0.18, height + 4);
+  drawBow(x, baseY - height - 8, width * 0.62);
+}
+
+const GIFT_PAPERS = { red: ['#4a0710', '#b3162a', '#d8394a'], gold: ['#6b4a16', '#d9ab4e', '#f1dca4'], green: ['#0c2a18', '#1f6b3c', '#2f8a50'] };
+const FLOOR_Y = 1500;
+
 const TREE_LIGHT = { time: 0, center: [540, 1000], rise: [TREE.bottom, TREE.top, TREE.halfWidth], festive: 1 };
 
 function sceneTree(local, duration, out) {
@@ -457,9 +480,34 @@ function sceneTree(local, duration, out) {
     uniforms: { ...TREE_LIGHT, time: local, assemble: progress(local, 0.1, 2.2), burstTime: -1, regroup: 0, fadeOut: 0, morph: 0 },
   });
   drawInto(textLayer, () => {
+    // a polished floor catching the light of the tree
+    const floor = ctx.createLinearGradient(0, FLOOR_Y - 40, 0, H);
+    floor.addColorStop(0, 'rgba(6,20,12,0)');
+    floor.addColorStop(0.12, 'rgba(6,20,12,.85)');
+    floor.addColorStop(1, 'rgba(2,8,5,.95)');
+    ctx.fillStyle = floor;
+    ctx.fillRect(0, FLOOR_Y - 40, W, H - FLOOR_Y + 40);
+    const lit = easeOut(progress(local, 1.7, 1.0));
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.scale(1, 0.3);
+    const pool = ctx.createRadialGradient(540, FLOOR_Y / 0.3 + 60, 0, 540, FLOOR_Y / 0.3 + 60, 620);
+    pool.addColorStop(0, `rgba(255,214,140,${0.4 * lit})`);
+    pool.addColorStop(1, 'rgba(255,214,140,0)');
+    ctx.fillStyle = pool;
+    ctx.fillRect(0, FLOOR_Y / 0.3 - 500, W, 1400);
+    ctx.restore();
     drawDecorations(local, 1.7);
-    const gift = easeOut(progress(local, 2.0, 0.8));
-    bottle(img.gutui, 830, 1500 + (1 - gift) * 60, 560, { alpha: gift, reflection: 0.25 });
+    [[250, 190, 150, 'gold', '#8a1622', 1.9], [400, 130, 110, 'red', '#f1dca4', 2.05], [700, 150, 120, 'green', '#f1dca4', 2.2]].forEach(([gx, gw, gh, paper, ribbon, at]) => {
+      const drop = easeOut(progress(local, at, 0.5));
+      if (drop <= 0) return;
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, drop * 2);
+      drawGift(gx, FLOOR_Y + 14 - (1 - drop) * 90, gw, gh, GIFT_PAPERS[paper], ribbon);
+      ctx.restore();
+    });
+    const gift = easeOut(progress(local, 2.3, 0.8));
+    bottle(img.gutui, 860, FLOOR_Y + 20 + (1 - gift) * 60, 600, { alpha: gift, reflection: 0.25, sweep: progress(local, 3.2, 1.0) || -1 });
     riseText('Un fior', 540, 300, local, 2.3, { size: 130 });
     riseText('de Crăciun.', 540, 440, local, 2.6, { size: 130, italic: true, gold: true });
   });
