@@ -39,6 +39,32 @@ function drawTree() {
 // Decorations on the tree, appearing from `at` seconds: string lights on four swags, baubles, the star.
 const BAUBLES = [[0.2, -0.5, 0], [0.34, 0.45, 1], [0.47, -0.15, 0], [0.56, 0.62, 1], [0.66, -0.62, 1], [0.76, 0.18, 0], [0.87, -0.3, 1], [0.9, 0.66, 0]];
 
+// A spark that winds up around the tree in a spiral, from `at` for `duration` seconds, trailing glitter.
+function drawSpiral(local, at, duration) {
+  const head = (local - at) / duration;
+  if (head <= 0 || head > 1.25) return;
+  const span = TREE.bottom - 76 - TREE.top;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 70; i += 1) {
+    const p = head - i * 0.009;
+    if (p < 0 || p > 1) continue;
+    const y = TREE.bottom - 76 - span * p;
+    const turn = p * Math.PI * 7;
+    const x = 540 + Math.sin(turn) * (treeHalfWidth(y) + 26);
+    const front = Math.cos(turn) > -0.2 ? 1 : 0.35; // dimmer while it passes behind the tree
+    const fade = (1 - i / 70) ** 1.5 * front;
+    const size = (i === 0 ? 90 : 34) * (0.45 + 0.55 * fade);
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, size);
+    glow.addColorStop(0, `rgba(255,250,225,${fade})`);
+    glow.addColorStop(0.3, `rgba(255,214,130,${0.6 * fade})`);
+    glow.addColorStop(1, 'rgba(255,200,110,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(x - size, y - size, size * 2, size * 2);
+  }
+  ctx.restore();
+}
+
 function drawDecorations(local, at, alpha = 1) {
   const span = TREE.bottom - 76 - TREE.top;
   ctx.save();
@@ -50,7 +76,8 @@ function drawDecorations(local, at, alpha = 1) {
       const u = i / 14;
       const y = y0 + 70 * u + 26 * Math.sin(Math.PI * u);
       const x = 540 + (2 * u - 1) * treeHalfWidth(y) * 0.86 * (garland % 2 ? -1 : 1);
-      const on = progress(local, at + garland * 0.12 + u * 0.3, 0.2) * (0.55 + 0.45 * Math.sin(local * 5 + i * 1.9 + garland));
+      // the garlands light up from the bottom, just behind the spark that winds up the tree
+      const on = progress(local, at + (3 - garland) * 0.2 + u * 0.15, 0.2) * (0.55 + 0.45 * Math.sin(local * 5 + i * 1.9 + garland));
       const glow = ctx.createRadialGradient(x, y, 0, x, y, 20);
       glow.addColorStop(0, `rgba(255,236,190,${on})`);
       glow.addColorStop(0.25, `rgba(255,200,110,${0.55 * on})`);
@@ -526,6 +553,7 @@ function sceneTree(local, duration, out) {
     ctx.fillRect(0, FLOOR_Y / 0.3 - 500, W, 1400);
     ctx.restore();
     drawDecorations(local, 1.7);
+    drawSpiral(local, 1.5, 0.9);
     [[250, 190, 150, 'gold', '#8a1622', 1.9], [400, 130, 110, 'red', '#f1dca4', 2.05], [700, 150, 120, 'green', '#f1dca4', 2.2]].forEach(([gx, gw, gh, paper, ribbon, at]) => {
       const drop = easeOut(progress(local, at, 0.5));
       if (drop <= 0) return;
