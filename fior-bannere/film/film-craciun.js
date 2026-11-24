@@ -167,6 +167,36 @@ function drawNight(local) {
   ctx.fillRect(WINDOW.x, WINDOW.y + WINDOW.height / 2 - 4, WINDOW.width, 8);
   lightLeak(x, WINDOW.y + WINDOW.height / 2, 330, '255,170,80', 0.6 * flicker);
 
+  // smoke curling out of the chimney
+  for (let i = 0; i < 14; i += 1) {
+    const age = ((local * 0.22 + i / 14) % 1);
+    const sx = x + width * 0.24 + 23 + Math.sin(age * 5 + i) * 26 * age + age * 60;
+    const sy = base - height - roof * 0.9 - 20 - age * 330;
+    const puff = ctx.createRadialGradient(sx, sy, 0, sx, sy, 26 + age * 70);
+    puff.addColorStop(0, `rgba(190,205,225,${0.2 * (1 - age)})`);
+    puff.addColorStop(1, 'rgba(190,205,225,0)');
+    ctx.fillStyle = puff;
+    ctx.fillRect(sx - 110, sy - 110, 220, 220);
+  }
+
+  // a shooting star crosses the sky once
+  const fly = progress(local, 2.2, 0.9);
+  if (fly > 0 && fly < 1) {
+    const hx = lerp(300, 720, fly);
+    const hy = lerp(240, 410, fly);
+    const tail = ctx.createLinearGradient(hx - 230, hy - 94, hx, hy);
+    tail.addColorStop(0, 'rgba(255,255,255,0)');
+    tail.addColorStop(1, `rgba(255,250,230,${Math.sin(Math.PI * fly)})`);
+    ctx.strokeStyle = tail;
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(hx - 230, hy - 94);
+    ctx.lineTo(hx, hy);
+    ctx.stroke();
+    lightLeak(hx, hy, 90, '255,250,230', Math.sin(Math.PI * fly));
+  }
+
   const snow = ctx.createLinearGradient(0, 1400, 0, H);
   snow.addColorStop(0, '#b9cbdf');
   snow.addColorStop(1, '#6f89a8');
@@ -195,9 +225,46 @@ const snowPass = (source, out, local, amount = 1) => gpu.pass('snow', {
 });
 
 // ---------- scenes ----------
+// Snowy fir branches hanging into the top corners, close to the lens (slightly out of focus).
+const branchCanvas = makeCanvas(W, 520);
+
+function paintBranches() {
+  const rand = seededRandom(515);
+  drawInto(branchCanvas, () => {
+    [[-40, -30, 0.5, 520], [W + 40, -40, Math.PI - 0.55, 470], [-60, 120, 0.2, 330], [W + 60, 150, Math.PI - 0.2, 300]].forEach(([bx, by, angle, length]) => {
+      for (let i = 0; i < 150; i += 1) {
+        const along = rand() * length;
+        const px = bx + Math.cos(angle) * along;
+        const py = by + Math.sin(angle) * along + along * along * 0.0005;
+        const side = rand() > 0.5 ? 1 : -1;
+        const lean = angle + side * (0.7 + rand() * 0.5);
+        const needle = 40 + rand() * 60 * (1 - along / length * 0.5);
+        const shade = 0.3 + 0.7 * rand();
+        ctx.strokeStyle = `rgb(${Math.round(8 + 20 * shade)},${Math.round(30 + 50 * shade)},${Math.round(30 + 34 * shade)})`;
+        ctx.lineWidth = 3 + rand() * 3;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px + Math.cos(lean) * needle, py + Math.sin(lean) * needle);
+        ctx.stroke();
+        if (rand() < 0.14) { // snow resting on the needles
+          ctx.fillStyle = 'rgba(232,240,250,.85)';
+          ctx.beginPath();
+          ctx.ellipse(px + Math.cos(lean) * needle * 0.5, py + Math.sin(lean) * needle * 0.5 - 8, 22 + rand() * 20, 11 + rand() * 5, lean * 0.3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    });
+  });
+}
+
 function sceneNight(local, duration, out) {
   drawInto(layer, () => {
     drawNight(local);
+    ctx.save();
+    ctx.filter = 'blur(3px)';
+    ctx.drawImage(branchCanvas, 0, Math.sin(local * 0.9) * 6 - 6);
+    ctx.restore();
     riseText('Afară', 540, 560, local, 0.7, { size: 170, shadow: 30 });
     riseText('ninge.', 540, 730, local, 1.1, { size: 170, italic: true, color: '#dfeaff', shadow: 30 });
   });
@@ -651,5 +718,6 @@ window.videoReady = Promise.all([loadAssets(), ...ICON_IDS.map((id) => loadIcon(
   const full = { x: 0, y: 0, width: W, height: H };
   particles = particlesFrom(treeMask, full, 36000, 211, { image: logoMask, rect: full });
   paintWreath();
+  paintBranches();
   window.renderFrame(0);
 });
