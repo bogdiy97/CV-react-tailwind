@@ -62,8 +62,14 @@ function footageScene(shot, drawWords, look = LOOK) {
 const SMALL = { family: SANS, weight: 700, size: 24, spacing: 9, color: COLORS.goldLight };
 
 // ---------- scenes ----------
+// She steps out at double speed while the curtain opens, then in slow motion under the title (whole frames only).
+function doorPosition(local) {
+  const frame = Math.round(local * FPS);
+  return frame <= 36 ? 4 + 2 * frame : 76 + (frame - 36);
+}
+
 const sceneDoor = footageScene(
-  (local, duration) => ({ clip: 'usa', position: 10 + local * FPS, fx: lerp(0.42, 0.5, local / duration), zoom: lerp(1, 1.06, local / duration) }),
+  (local, duration) => ({ clip: 'usa', position: doorPosition(local), fx: lerp(0.42, 0.5, local / duration), zoom: lerp(1, 1.06, local / duration) }),
   (local) => {
     scrim(0.45, 0.8);
     curtain(easeInOut(progress(local, 0.1, 1.3)));
@@ -227,7 +233,12 @@ function sceneGold(local, duration, out) {
       rule(540, 1118, 420, local, 3.0);
       riseText('Esența rafinamentului', 540, 1200, local, 3.0, { size: 70 });
       riseText('în fiecare picătură.', 540, 1290, local, 3.25, { size: 70, italic: true, gold: true });
-      trackText('FIORDRINKS.RO', 540, 1400, local, 3.7, { ...SMALL, size: 22, alpha: 0.8 });
+      trackText('FIORDRINKS.RO', 540, 1368, local, 3.7, { ...SMALL, size: 22, alpha: 0.8 });
+      // the range under the slogan, rising one by one
+      bottleRow(['hlZmeura', 'sangria', 'gutui', 'hugo', 'hlMenta'], 345, 150).forEach((item, i) => {
+        const rise = easeOut(progress(local, 3.3 + i * 0.08, 0.6));
+        bottle(img[item.key], item.x, 1790 + (1 - rise) * 50, item.height, { alpha: rise, reflection: 0.2 });
+      });
     },
   });
 }
