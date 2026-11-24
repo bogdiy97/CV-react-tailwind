@@ -13,6 +13,7 @@ Usage:
 Needs: fluidsynth and a soundfont (apt: fluidsynth musescore-general-soundfont), mido + numpy (pip).
 """
 import argparse
+import re
 import subprocess
 import tempfile
 import wave
@@ -121,7 +122,7 @@ def lounge_ending(score, start, length):
 
 # ---------- craciun (C major): C, Am, F, G ----------
 CRACIUN_PROGRAMS = {"strings": 48, "celesta": 8, "glock": 9, "harp": 46, "bells": 14, "choir": 52, "bass": 32,
-                    "piano": 0, "swell": 119, "timpani": 47, "drums": None}
+                    "piano": 0, "swell": 119, "timpani": 47, "flute": 73, "drums": None}
 CRACIUN_CHORDS = [(48, [60, 64, 67, 72]), (45, [57, 60, 64, 69]), (41, [57, 60, 65, 69]), (43, [55, 59, 62, 67])]
 # One bar of melody per chord, in eighth notes (None = rest), an octave above the voicing.
 CRACIUN_MELODY = [
@@ -129,6 +130,17 @@ CRACIUN_MELODY = [
     [81, 84, 88, 84, 81, 84, 88, None],
     [77, 81, 84, 81, 77, 81, 86, 84],
     [83, 86, 91, 86, 83, 81, 79, None],
+]
+# The tune on top, over eight bars: (beat in the bar, length in beats, pitch).
+CRACIUN_TUNE = [
+    [(0, 2, 79), (2, 1, 76), (3, 1, 79)],
+    [(0, 2, 81), (2, 2, 84)],
+    [(0, 1, 81), (1, 1, 79), (2, 1, 77), (3, 1, 81)],
+    [(0, 3, 79)],
+    [(0, 2, 84), (2, 2, 79)],
+    [(0, 2, 81), (2, 2, 76)],
+    [(0, 1, 77), (1, 1, 79), (2, 1, 81), (3, 1, 84)],
+    [(0, 2, 86), (2, 2, 83)],
 ]
 
 
@@ -149,9 +161,12 @@ def craciun_beat(score, section, t, beat, b, bar, root, voicing):
             if full:
                 score.note("glock", pitch + 12, when, beat * 0.5, 46)
     if section != "intro":
-        # harp arpeggio in sixteenths, bass on one and three, sleigh bells on the eighths
+        # the tune on the flute, harp arpeggio in sixteenths, bass on one and three, sleigh bells on the eighths
+        for start, length, pitch in CRACIUN_TUNE[bar % 8]:
+            if start == b:
+                score.note("flute", pitch, t, beat * length * 0.95, 74 if full else 64)
         for i in range(4):
-            score.note("harp", voicing[(b + i) % 4] - 12 + (12 if i % 2 else 0), t + i * beat / 4, beat * 0.6, 44 + 6 * (i == 0))
+            score.note("harp", voicing[(b + i) % 4] - 12 + (12 if i % 2 else 0), t + i * beat / 4, beat * 0.6, 38 + 6 * (i == 0))
         if b in (0, 2):
             score.note("bass", root - 12, t, beat * 1.8, 70)
         score.note("drums", SLEIGH, t, beat / 4, 70 if b % 2 == 0 else 58)
@@ -239,12 +254,36 @@ def render(score, out, duration):
     fade_in, fade_out = int(0.02 * SR), int(1.2 * SR)
     audio[:fade_in] *= np.linspace(0, 1, fade_in)[:, None]
     audio[-fade_out:] *= (np.linspace(1, 0, fade_out) ** 1.5)[:, None]
-    audio *= 0.89 / max(np.max(np.abs(audio)), 1e-9)
-    with wave.open(str(out), "wb") as w:
+    write_wav(out, master(audio))
+
+
+def write_wav(path, audio):
+    with wave.open(str(path), "wb") as w:
         w.setnchannels(2)
         w.setsampwidth(2)
         w.setframerate(SR)
         w.writeframes((audio * 32767).astype("<i2").tobytes())
+
+
+def loudness(audio):
+    """Integrated loudness in LUFS (EBU R128), measured by ffmpeg."""
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "mix.wav"
+        write_wav(path, audio)
+        log = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(path), "-af", "ebur128", "-f", "null", "-"],
+                             capture_output=True, text=True).stderr
+    return float(re.findall(r"I:\s+(-?[\d.]+) LUFS", log)[-1])
+
+
+def master(audio, target=-14.0):
+    """Soft-limits the mix until it reaches the target loudness (the level social platforms play at); peak -1 dBFS."""
+    audio = audio / max(np.max(np.abs(audio)), 1e-9)
+    for drive in (1.0, 1.25, 1.6, 2.0, 2.5, 3.2, 4.0, 5.0):
+        limited = np.tanh(audio * drive) / np.tanh(drive) * 0.89
+        level = loudness(limited)
+        if level >= target - 0.3:
+            break
+    return limited * min(1.0, 10 ** ((target - level) / 20))
 
 
 def times(text):
