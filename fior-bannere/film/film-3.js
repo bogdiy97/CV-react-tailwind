@@ -193,6 +193,8 @@ const sceneOrbit = {
         goldDust(local, 110, 23, { speed: 30, alpha: 0.7 });
         riseText('Singur sau', 540, 300, local, 0.5, { size: 120, shadow: 24 });
         riseText('împreună.', 540, 430, local, 0.75, { size: 120, italic: true, gold: true, shadow: 24 });
+        rule(540, 1668, 520, local, 1.1);
+        trackText('LICHIOR  ·  COCKTAILS  ·  HARD LEMONADE', 540, 1730, local, 1.2, { ...SMALL, alpha: 0.9 });
       },
     });
   },
