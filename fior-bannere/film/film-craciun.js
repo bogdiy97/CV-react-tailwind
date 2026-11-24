@@ -248,7 +248,7 @@ function paintBranches() {
         ctx.lineTo(px + Math.cos(lean) * needle, py + Math.sin(lean) * needle);
         ctx.stroke();
         if (rand() < 0.14) { // snow resting on the needles
-          ctx.fillStyle = 'rgba(232,240,250,.85)';
+          ctx.fillStyle = 'rgba(225,235,248,.6)';
           ctx.beginPath();
           ctx.ellipse(px + Math.cos(lean) * needle * 0.5, py + Math.sin(lean) * needle * 0.5 - 8, 22 + rand() * 20, 11 + rand() * 5, lean * 0.3, 0, Math.PI * 2);
           ctx.fill();
@@ -551,18 +551,16 @@ function drawBow(x, y, size) {
   ctx.restore();
 }
 
-// A big glass bauble swinging in on its string, with a gold line-art icon on it.
-function drawBauble(cl, { icon, colors }) {
+// A glass bauble swinging in on its string from (hangX, -90); `icon` (optional) is drawn on it.
+function drawBauble(cl, { icon = null, colors, hangX = 540, length = 900, r = 250 }) {
   const angle = 0.42 * Math.exp(-3.2 * cl) * Math.cos(10 * cl);
-  const length = 900;
-  const x = 540 + length * Math.sin(angle);
+  const x = hangX + length * Math.sin(angle);
   const y = -90 + length * Math.cos(angle);
-  const r = 250;
   ctx.strokeStyle = COLORS.gold;
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(540, -90);
-  ctx.lineTo(x, y - r - 30);
+  ctx.moveTo(hangX, -90);
+  ctx.lineTo(x, y - r * 1.12);
   ctx.stroke();
   const ball = ctx.createRadialGradient(x - r * 0.38, y - r * 0.4, r * 0.08, x, y, r);
   ball.addColorStop(0, colors[0]);
@@ -580,8 +578,8 @@ function drawBauble(cl, { icon, colors }) {
   const cap = ctx.createLinearGradient(x - 44, 0, x + 44, 0);
   [[0, '#6b4a16'], [0.4, '#f1dca4'], [1, '#8f6f2e']].forEach(([at, color]) => cap.addColorStop(at, color));
   ctx.fillStyle = cap;
-  ctx.fillRect(x - 42, y - r - 34, 84, 46);
-  drawIcon(icon, x, y + 6, r * 1.15, { alpha: 0.9 });
+  ctx.fillRect(x - r * 0.17, y - r * 1.14, r * 0.34, r * 0.19);
+  if (icon) drawIcon(icon, x, y + 6, r * 1.15, { alpha: 0.9 });
   ctx.save(); // highlight
   ctx.globalCompositeOperation = 'lighter';
   const shine = ctx.createRadialGradient(x - r * 0.42, y - r * 0.46, 0, x - r * 0.42, y - r * 0.46, r * 0.5);
@@ -707,6 +705,12 @@ function sceneRange(local, duration, out) {
 }
 
 const BURST_AT = 1.2; // seconds into the finale (25.2 s in the film, on a beat)
+const END_BAUBLES = [
+  { hangX: 170, length: 470, r: 74, colors: ['#ffb0b0', '#b3162a', '#3d0510'] },
+  { hangX: 330, length: 330, r: 48, colors: ['#fff0c4', '#d9912b', '#5e3408'] },
+  { hangX: 900, length: 420, r: 62, colors: ['#fff0c4', '#d9912b', '#5e3408'] },
+  { hangX: 760, length: 300, r: 42, colors: ['#ffb0b0', '#b3162a', '#3d0510'] },
+];
 
 function sceneFinale(local, duration, out) {
   gpu.pass('bokeh', { target: T.a, uniforms: { time: local, aspect: ASPECT, density: 0.16, baseColor: PINE.base.map((v) => v * 0.6), glowColor: PINE.glow.map((v) => v * 0.5) } });
@@ -723,9 +727,26 @@ function sceneFinale(local, duration, out) {
   });
   drawInto(textLayer, () => {
     drawDecorations(local, 0.2, 1 - progress(local, BURST_AT - 0.1, 0.25));
+    // the end card: fir branches and baubles frame the logo and the greeting
+    const card = local - 2.5;
+    if (card > 0) {
+      ctx.save();
+      ctx.globalAlpha = easeOut(progress(card, 0, 0.6));
+      ctx.filter = 'blur(2px)';
+      ctx.drawImage(branchCanvas, 0, -40 + (1 - easeOut(progress(card, 0, 0.8))) * -120);
+      ctx.filter = 'none';
+      END_BAUBLES.forEach((bauble, i) => drawBauble(Math.max(card - i * 0.12, 0), bauble));
+      ctx.restore();
+      // the whole family under the greeting
+      bottleRow(['hlZmeura', 'sangria', 'gutui', 'hugo', 'hlMenta'], 400, 150).forEach((item, i) => {
+        const rise = easeOut(progress(card, 0.5 + i * 0.08, 0.6));
+        bottle(img[item.key], item.x, 1770 + (1 - rise) * 50, item.height, { alpha: rise, reflection: 0.2 });
+      });
+    }
     logo(540, 860, LOGO_WIDTH, { alpha: easeOut(progress(local, 2.7, 0.6)), glow: 0.6, shimmer: progress(local, 3.2, 0.8) });
-    riseText('Crăciun fericit!', 540, 1210, local, 3.0, { size: 110, italic: true, gold: true });
-    trackText('SĂRBĂTORI CU FIORI FRUMOȘI', 540, 1300, local, 3.3, SMALL);
+    rule(540, 1120, 420, local, 3.0);
+    riseText('Crăciun fericit!', 540, 1240, local, 3.0, { size: 118, italic: true, gold: true });
+    trackText('SĂRBĂTORI CU FIORI FRUMOȘI', 540, 1330, local, 3.3, SMALL);
   });
   gpu.pass('compose', { target: T.b, textures: { base: T.a, overlay: textTexture() } });
   const age = local - BURST_AT;
