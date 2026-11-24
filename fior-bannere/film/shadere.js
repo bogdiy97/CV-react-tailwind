@@ -16,7 +16,7 @@ const SHADERS = {
 
   // Molten metal or liquid (domain-warped noise, lit); a mask (logo or a word) rises out of it as a relief.
   gold: `uniform sampler2D logo; uniform vec4 logoRect; uniform float emboss; uniform float zoom; uniform float aspect;
-    uniform vec3 deep; uniform vec3 mid; uniform vec3 shine; uniform vec3 rimTint;
+    uniform vec3 deep; uniform vec3 mid; uniform vec3 shine; uniform vec3 rimTint; uniform float bump;
     void main() {
       vec2 p = (vec2((uv.x - 0.5) * aspect, uv.y - 0.5) * zoom + 0.5) * 2.6;
       float t = time * 0.32;
@@ -27,7 +27,8 @@ const SHADERS = {
       float inside = step(0.0, luv.x) * step(luv.x, 1.0) * step(0.0, luv.y) * step(luv.y, 1.0);
       float shape = inside * mix(textureLod(logo, luv, 3.0).a, texture(logo, luv).a, 0.4);
       h = mix(h, 0.62, emboss * shape * 0.7) + emboss * shape * 0.5;
-      vec3 n = normalize(vec3(-dFdx(h) * 70.0, -dFdy(h) * 70.0, 1.0));
+      float k = 70.0 * (1.0 + bump);
+      vec3 n = normalize(vec3(-dFdx(h) * k, -dFdy(h) * k, 1.0));
       vec3 L = normalize(vec3(0.55 * sin(time * 0.7), 0.5 + 0.2 * cos(time * 0.5), 0.75));
       float diff = max(dot(n, L), 0.0);
       float spec = pow(max(dot(n, normalize(L + vec3(0.0, 0.0, 1.0))), 0.0), 40.0);
@@ -203,9 +204,57 @@ SHADERS.bubbles = `uniform sampler2D source; uniform float aspect; uniform float
     color = vec4(texture(source, uv).rgb + acc * amount * vec3(1.0, 0.98, 0.9), 1.0);
   }`;
 
+// Crossfade between two frames, plus an optional warm flash.
+SHADERS.mix = `uniform sampler2D srcA; uniform sampler2D srcB; uniform float amount; uniform float flash;
+  void main() {
+    vec3 c = mix(texture(srcA, uv).rgb, texture(srcB, uv).rgb, amount);
+    color = vec4(c + flash * vec3(1.0, 0.9, 0.72), 1.0);
+  }`;
+
+// Film look for real footage: sharpen (it is upscaled), exposure, contrast, saturation, warm highlights.
+SHADERS.grade = `uniform sampler2D source; uniform float sharpen; uniform float exposure; uniform float contrast;
+  uniform float saturation; uniform float warmth;
+  void main() {
+    vec2 px = 1.0 / resolution;
+    vec3 c = texture(source, uv).rgb;
+    vec3 around = (texture(source, uv + vec2(px.x, 0.0)).rgb + texture(source, uv - vec2(px.x, 0.0)).rgb
+      + texture(source, uv + vec2(0.0, px.y)).rgb + texture(source, uv - vec2(0.0, px.y)).rgb) * 0.25;
+    c = (c + (c - around) * sharpen) * exposure;
+    float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+    c = mix(vec3(l), c, saturation);
+    c = (c - 0.5) * contrast + 0.5;
+    c += warmth * (vec3(0.06, 0.02, -0.05) * smoothstep(0.2, 0.9, l) + vec3(-0.02, 0.0, 0.03) * (1.0 - smoothstep(0.0, 0.4, l)));
+    color = vec4(max(c, 0.0), 1.0);
+  }`;
+
+// Falling snow in five depth layers (near flakes are bigger, softer and faster), added on top of the source.
+SHADERS.snow = `uniform sampler2D source; uniform float aspect; uniform float amount; uniform float wind;
+  void main() {
+    vec2 p = vec2(uv.x * aspect, uv.y);
+    float acc = 0.0;
+    for (int layer = 0; layer < 5; layer++) {
+      float depth = float(layer) / 4.0;
+      float scale = mix(5.0, 24.0, depth);
+      float fall = mix(0.5, 0.16, depth);
+      vec2 g = p * scale + vec2(wind * time * mix(0.5, 0.2, depth) + depth * 7.3, time * fall * scale * 0.2 + depth * 3.1);
+      vec2 id = floor(g);
+      vec2 f = fract(g) - 0.5;
+      float h = hash(id + depth * 91.0);
+      if (h > 0.55) continue;
+      vec2 o = (vec2(hash(id + 1.7), hash(id + 8.3)) - 0.5) * 0.6 + vec2(sin(time * (0.8 + h) + h * 40.0) * 0.1, 0.0);
+      float r = mix(0.09, 0.06, depth) * (0.6 + 0.8 * hash(id + 4.4));
+      float soft = mix(0.75, 0.25, depth);
+      acc += smoothstep(r, r * (1.0 - soft), length(f - o)) * mix(0.55, 0.9, depth);
+    }
+    color = vec4(texture(source, uv).rgb + acc * amount * vec3(0.92, 0.96, 1.0), 1.0);
+  }`;
+
+// Particles gather into target, burst, and regroup. Optional: target2 (layout [2, 4, 2]) with morph = 1
+// makes them regroup into a second shape; festive = 1 colours them like lights on a tree until they regroup.
 const PARTICLE_VS = `#version 300 es
 layout(location = 0) in vec2 target;
 layout(location = 1) in vec4 seed;
+layout(location = 2) in vec2 target2;
 uniform float time;
 uniform vec2 resolution;
 uniform vec2 center;
@@ -213,6 +262,8 @@ uniform float assemble;
 uniform float burstTime;
 uniform float regroup;
 uniform float fadeOut;
+uniform float morph;
+uniform float festive;
 out float vAlpha;
 out vec3 vColor;
 void main() {
@@ -230,12 +281,17 @@ void main() {
   float back = clamp(regroup * 1.3 - seed.x * 0.3, 0.0, 1.0);
   back = back * back * (3.0 - 2.0 * back);
   float bursting = step(0.0, burstTime) * (1.0 - back);
-  pos += burst * bursting;
+  pos += burst * bursting + (target2 - target) * back * morph;
 
   gl_Position = vec4(pos.x / resolution.x * 2.0 - 1.0, 1.0 - pos.y / resolution.y * 2.0, 0.0, 1.0);
   gl_PointSize = 2.5 + seed.w * 3.0 + bursting * 2.0;
   vAlpha = (0.45 + 0.55 * pe) * (1.0 - fadeOut);
   vColor = mix(vec3(1.0, 0.72, 0.36), vec3(1.0, 0.95, 0.82), seed.y);
+
+  float lights = festive * (1.0 - back);
+  vec3 light = seed.z < 0.14 ? vec3(1.0, 0.22, 0.18) : (seed.z < 0.62 ? vec3(0.3, 0.85, 0.42) : vColor);
+  vColor = mix(vColor, light, lights);
+  vAlpha *= 1.0 - lights * 0.45 * (0.5 + 0.5 * sin(time * 4.0 + seed.x * 60.0));
 }`;
 
 const PARTICLE_FS = `#version 300 es

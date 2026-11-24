@@ -1,6 +1,6 @@
 // Renders a Fior film into ../video: <name>.mp4 with music (muzica.py) and <name>-fara-sunet.mp4.
 // Usage: node fior-bannere/film/render-film.cjs <film> [--doar-sunet]
-//   <film>: 1 | 2 | gutui | sangria | hugo | hard-lemonade | gama
+//   <film>: 1 | 2 | 3 | craciun | gutui | sangria | hugo | hard-lemonade | gama
 //   --doar-sunet: keep the picture, only compose new music and put it on <name>-fara-sunet.mp4 (seconds, no re-render).
 const { spawnSync } = require('child_process');
 const fs = require('fs');
@@ -21,6 +21,17 @@ const FILMS = {
     page: 'film-2.html', name: 'fior-film-2', crf: 23,
     music: ['--duration', '32', '--bpm', '120', '--sections', '0:intro,5:verse,14.5:drop,18.5:verse,23.5:intro,26:finale',
       '--hits', '3,5,10,12.4,14.5,18.5,23.5', '--big', '26', '--final', '28.8'],
+  },
+  // Film 3 uses the official footage (run cadre.py first).
+  3: {
+    page: 'film-3.html', name: 'fior-film-3', crf: 21,
+    music: ['--duration', '30', '--bpm', '120', '--sections', '0:intro,4:verse,12:drop,16:verse,20.5:intro,24:finale',
+      '--hits', '4,8,10,12,16,20.5', '--big', '24', '--final', '26.6'],
+  },
+  craciun: {
+    page: 'film-craciun.html', name: 'fior-film-craciun', crf: 22,
+    music: ['--style', 'craciun', '--duration', '30', '--bpm', '100', '--sections', '0:intro,4.8:verse,14.4:drop,19.2:verse,24:finale',
+      '--hits', '4.8,9.6,14.4,19.2,24', '--big', '26.4', '--final', '28.2'],
   },
 };
 Object.entries({ gutui: 0, sangria: -2, hugo: 3, 'hard-lemonade': 5, gama: 0 }).forEach(([id, key]) => {

@@ -251,6 +251,36 @@ function goldDust(t, count, seed, { speed = 40, alpha = 0.7 } = {}) {
   ctx.restore();
 }
 
+const icons = {};
+
+// Loads a gold line-art icon from the shared SVG sprite (FIOR_SPRITE in ../fior.js) into `icons`, with even lines.
+function loadIcon(id) {
+  const viewBox = FIOR_SPRITE.match(new RegExp(`<symbol id="${id}" viewBox="([^"]+)"`))[1];
+  const [, , boxWidth, boxHeight] = viewBox.split(' ').map(Number);
+  const width = 920;
+  const height = Math.round((width * boxHeight) / boxWidth);
+  const defs = FIOR_SPRITE.match(/<defs>[\s\S]*<\/defs>/)[0];
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${viewBox}" color="${COLORS.goldLight}">`
+    + `<style>*{stroke-width:${(boxWidth / 150).toFixed(2)}px !important}</style>${defs}<use href="#${id}"/></svg>`;
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve((icons[id] = image));
+    image.onerror = () => reject(new Error(`Icon ${id} failed`));
+    image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  });
+}
+
+function drawIcon(id, cx, cy, width, { alpha = 1, rotation = 0 } = {}) {
+  const icon = icons[id];
+  const height = (width * icon.height) / icon.width;
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.translate(cx, cy);
+  ctx.rotate(rotation);
+  ctx.drawImage(icon, -width / 2, -height / 2, width, height);
+  ctx.restore();
+}
+
 // Loads every image in IMAGE_FILES into `img` and waits for the brand fonts.
 function loadAssets() {
   return Promise.all([
@@ -260,10 +290,9 @@ function loadAssets() {
       image.onerror = () => reject(new Error(`Missing image ${file}`));
       image.src = `../imagini/${file}`;
     })),
-    document.fonts.load(`400 100px ${SERIF}`),
-    document.fonts.load(`italic 400 100px ${SERIF}`),
-    document.fonts.load(`700 40px ${SANS}`),
-    document.fonts.load(`600 40px ${SANS}`),
-    document.fonts.load(`400 40px ${SANS}`),
+    // The sample text makes the browser load the latin-ext faces too; without it the first frame that
+    // shows ă, ș or ț would be drawn with a fallback font.
+    ...[`400 100px ${SERIF}`, `italic 400 100px ${SERIF}`, `600 100px ${SERIF}`, `italic 600 100px ${SERIF}`,
+      `700 40px ${SANS}`, `600 40px ${SANS}`, `400 40px ${SANS}`].map((font) => document.fonts.load(font, 'Fior ăâîșț')),
   ]);
 }

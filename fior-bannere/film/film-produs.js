@@ -8,48 +8,11 @@ const BEAT = 0.5;
 const PRODUCT_ID = new URLSearchParams(location.search).get('p') || 'gutui';
 const P = PRODUCT_FILMS[PRODUCT_ID];
 
-const BOTTLE_SCALE = { gutui: 1, sangria: 0.92, hugo: 0.9 };
-const bottleScale = (key) => BOTTLE_SCALE[key] ?? 0.72;
 const LOGO_WIDTH = 720;
 const ICON_IDS = ['quince-branch', 'berry', 'citrus', 'cinnamon', 'elderflower', 'mint', 'sparkle'];
-const icons = {};
 const reliefCanvas = makeCanvas();
 let reliefTexture;
 let particles;
-
-// ---------- assets ----------
-// A gold line-art icon from the shared SVG sprite (fior.js), as an image with even 6 px lines.
-function loadIcon(id) {
-  const viewBox = FIOR_SPRITE.match(new RegExp(`<symbol id="${id}" viewBox="([^"]+)"`))[1];
-  const [, , boxWidth, boxHeight] = viewBox.split(' ').map(Number);
-  const width = 920;
-  const height = Math.round((width * boxHeight) / boxWidth);
-  const defs = FIOR_SPRITE.match(/<defs>[\s\S]*<\/defs>/)[0];
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${viewBox}" color="${COLORS.goldLight}">`
-    + `<style>*{stroke-width:${(boxWidth / 150).toFixed(2)}px !important}</style>${defs}<use href="#${id}"/></svg>`;
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve((icons[id] = image));
-    image.onerror = () => reject(new Error(`Icon ${id} failed`));
-    image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-  });
-}
-
-function drawIcon(id, cx, cy, width, { alpha = 1, rotation = 0 } = {}) {
-  const icon = icons[id];
-  const height = (width * icon.height) / icon.width;
-  ctx.save();
-  ctx.globalAlpha *= alpha;
-  ctx.translate(cx, cy);
-  ctx.rotate(rotation);
-  ctx.drawImage(icon, -width / 2, -height / 2, width, height);
-  ctx.restore();
-}
-
-// Bottles side by side, keeping the real size relation between them.
-function bottleRow(keys, height, gap) {
-  return keys.map((key, i) => ({ key, x: 540 + (i - (keys.length - 1) / 2) * gap, height: height * bottleScale(key) }));
-}
 
 const heroRow = () => (P.bottles.length === 1 ? bottleRow(P.bottles, 1020, 0) : bottleRow(P.bottles, P.bottles.length > 4 ? 840 : 1000, P.bottles.length > 4 ? 200 : 235));
 const finaleRow = () => (P.bottles.length === 1 ? bottleRow(P.bottles, 1080, 0) : bottleRow(P.bottles, P.bottles.length > 4 ? 860 : 1000, P.bottles.length > 4 ? 200 : 235));
@@ -147,13 +110,6 @@ const scenePhoto = photoScene((local, duration) => {
   reveal(P.photo.small, 540, portrait ? 1720 : 1790, local, 1.2, { family: SANS, weight: 700, size: 24, spacing: 8, alpha: 0.85 });
 });
 
-function beatLabels(name, label, cl) {
-  const slide = easeOut(progress(cl, 0, 0.25));
-  logo(540, 210, 230, { glow: 0.3 });
-  text(label, 540, 1610, { family: SANS, weight: 700, size: 23, spacing: 8, color: COLORS.goldLight, alpha: slide });
-  text(name, 540 + (1 - slide) * 70, 1725, { size: 104, alpha: slide, shadow: 24, maxWidth: 980 });
-}
-
 function sceneBeats(local, duration, out) {
   const index = Math.min(7, Math.floor(local / BEAT));
   const cl = local - index * BEAT;
@@ -163,15 +119,7 @@ function sceneBeats(local, duration, out) {
   const name = visual.name || (P.finale.name ?? `${card.word} ${card.sub}`);
 
   if (index % 2 === 0) {
-    gpu.pass('bokeh', { target: T.a, uniforms: { time: local, aspect: ASPECT, density: 0.3, baseColor: stage.base, glowColor: stage.glow.map((v) => v * 0.8) } });
-    drawInto(textLayer, () => {
-      const pop = easeOut(progress(cl, 0, 0.3));
-      logo(540, 210, 230, { glow: 0.3 });
-      drawIcon(card.icon, 540, 820, 460 * (1.15 - 0.15 * pop), { alpha: pop, rotation: (1 - pop) * -0.2 });
-      text(card.word, 540, 1340, { size: 130, alpha: pop, shadow: 24, maxWidth: 960 });
-      if (card.sub) text(card.sub, 540, 1460, { size: 96, italic: true, color: COLORS.goldLight, alpha: pop, shadow: 24, maxWidth: 960 });
-    });
-    gpu.pass('compose', { target: T.c, textures: { base: T.a, overlay: textTexture() } });
+    iconCard(cl, T.c, { ...card, stage, time: local });
   } else if (visual.photo) {
     drawInto(layer, () => {
       blurredBackdrop(img[visual.photo], 1.3, 0.5);
@@ -181,12 +129,7 @@ function sceneBeats(local, duration, out) {
     drawInto(textLayer, () => beatLabels(name, visual.label, cl));
     gpu.pass('compose', { target: T.c, textures: { base: T.a, overlay: textTexture() } });
   } else {
-    litStage(cl, T.c, {
-      ...stage, lightY: 980, floorY: 1500, intensity: 1.8,
-      drawBottles: () => bottleRow(visual.bottles, 1000 * (0.92 + 0.08 * zoomIn), 240)
-        .forEach((item) => bottle(img[item.key], item.x, 1500, item.height, { reflection: 0.3 })),
-      drawText: () => beatLabels(name, visual.label, cl),
-    });
+    bottleCut(cl, T.c, { bottles: visual.bottles, name, label: visual.label, stage, zoomIn });
   }
   gpu.pass('shock', { target: out, uniforms: { age: cl, center: [0.5, 0.5], aspect: ASPECT, strength: 1 }, textures: { source: T.c } });
 }
@@ -247,7 +190,6 @@ window.renderFrame = (t) => renderTimeline(SCENES, t, { duration: VIDEO_DURATION
 
 function setupProduct() {
   setupEngine();
-  T.liquid = gpu.target('liquid', 1);
 
   drawInto(reliefCanvas, () => {
     if (P.relief) text(P.relief, 540, 960, RELIEF_TEXT);

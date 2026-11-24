@@ -99,8 +99,6 @@ const DROP_CUTS = [
   { photo: 'fotoHl', name: 'Hard Lemonade', label: 'ZERO ZAHĂR' },
   { bottles: ['hlGhimbir', 'hlZmeura', 'hlMenta', 'hlSoc'], name: 'Hard Lemonade', label: 'PATRU AROME', base: [0.03, 0.022, 0.003], glow: [0.34, 0.25, 0.04], ray: [1.0, 0.85, 0.4] },
 ];
-const BOTTLE_SCALE = { gutui: 1, sangria: 0.92, hugo: 0.9 };
-
 function dropText(cut, cl) {
   const slide = easeOut(progress(cl, 0, 0.25));
   logo(540, 210, 230, { glow: 0.3 });
@@ -129,7 +127,7 @@ function sceneDrop(local, duration, out) {
         const gap = 240;
         cut.bottles.forEach((key, i) => {
           const x = 540 + (i - (cut.bottles.length - 1) / 2) * gap;
-          bottle(img[key], x, 1500, 1000 * (BOTTLE_SCALE[key] ?? 0.72) * (0.92 + 0.08 * zoomIn), { reflection: 0.3 });
+          bottle(img[key], x, 1500, 1000 * bottleScale(key) * (0.92 + 0.08 * zoomIn), { reflection: 0.3 });
         });
       },
       drawText: () => dropText(cut, cl),
@@ -138,39 +136,18 @@ function sceneDrop(local, duration, out) {
   gpu.pass('shock', { target: out, uniforms: { age: cl, center: [0.5, 0.5], aspect: ASPECT, strength: 1 }, textures: { source: T.c } });
 }
 
-const RING = [['gutui', 1], ['hlZmeura', 0.72], ['sangria', 0.92], ['hlMenta', 0.72], ['hugo', 0.9], ['hlGhimbir', 0.72], ['hlSoc', 0.72]];
+const RING = ['gutui', 'hlZmeura', 'sangria', 'hlMenta', 'hugo', 'hlGhimbir', 'hlSoc'];
 
 function sceneOrbit(local, duration, out) {
-  gpu.pass('bokeh', { target: T.a, uniforms: { time: local, aspect: ASPECT, density: 0.35, baseColor: [0.02, 0.012, 0.004], glowColor: [0.28, 0.18, 0.05] } });
-
-  const spin = lerp(-Math.PI * 2 * 0.85, 0, easeOut(progress(local, 0, duration - 0.4)));
-  const tilt = lerp(0.5, 1.15, easeInOut(progress(local, 0, duration)));
-  drawInto(layer, () => {
-    RING.map(([key, scale], i) => {
-      const angle = spin + (i * Math.PI * 2) / RING.length;
-      const depth = Math.cos(angle);
-      return { key, scale, x: 540 + 410 * Math.sin(angle), depth, near: (depth + 1) / 2 };
-    }).sort((a, b) => a.depth - b.depth).forEach((item) => {
-      bottle(img[item.key], item.x, 1430 + 90 * item.depth * tilt, 960 * item.scale * (0.6 + 0.4 * item.near), {
-        alpha: 0.5 + 0.5 * item.near, brightness: 0.45 + 0.55 * item.near, reflection: 0.24,
-      });
-    });
+  orbitScene(local, duration, out, {
+    ring: RING,
+    drawText: () => {
+      goldDust(local, 110, 23, { speed: 30, alpha: 0.7 });
+      reveal('Singur sau', 540, 300, local, 0.5, { size: 120 });
+      reveal('împreună.', 540, 430, local, 0.75, { size: 120, italic: true, color: COLORS.goldLight });
+      reveal('LICHIOR  ·  COCKTAILS  ·  HARD LEMONADE', 540, 1740, local, 1.2, { family: SANS, weight: 700, size: 24, spacing: 9, color: COLORS.goldLight, alpha: 0.85 });
+    },
   });
-  const bottles = layerTexture();
-  gpu.pass('rays', {
-    target: T.rays,
-    uniforms: { lightPos: uvPoint(540, 1150), lightRadius: 0.12, aspect: ASPECT, rayColor: [1.0, 0.8, 0.45], intensity: 1.3 },
-    textures: { occluder: bottles },
-  });
-  gpu.pass('add', { target: T.b, uniforms: { amount: 1 }, textures: { base: T.a, light: T.rays } });
-  gpu.pass('compose', { target: T.a, textures: { base: T.b, overlay: bottles } });
-  drawInto(textLayer, () => {
-    goldDust(local, 110, 23, { speed: 30, alpha: 0.7 });
-    reveal('Singur sau', 540, 300, local, 0.5, { size: 120 });
-    reveal('împreună.', 540, 430, local, 0.75, { size: 120, italic: true, color: COLORS.goldLight });
-    reveal('LICHIOR  ·  COCKTAILS  ·  HARD LEMONADE', 540, 1740, local, 1.2, { family: SANS, weight: 700, size: 24, spacing: 9, color: COLORS.goldLight, alpha: 0.85 });
-  });
-  gpu.pass('compose', { target: out, textures: { base: T.a, overlay: textTexture() } });
 }
 
 const BURST_AT = 2.5; // seconds into the finale (26.0 s in the film)
