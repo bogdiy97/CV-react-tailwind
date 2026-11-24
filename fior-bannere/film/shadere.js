@@ -181,6 +181,28 @@ const SHADERS = {
     }`,
 };
 
+// Rising bubbles (sparkling drinks), added on top of `source`.
+SHADERS.bubbles = `uniform sampler2D source; uniform float aspect; uniform float amount;
+  void main() {
+    vec2 p = vec2(uv.x * aspect, uv.y);
+    float acc = 0.0;
+    for (int layer = 0; layer < 3; layer++) {
+      float fl = float(layer);
+      vec2 g = p * (14.0 + fl * 10.0) + vec2(0.0, -time * (1.2 + fl * 0.6));
+      vec2 id = floor(g);
+      vec2 f = fract(g) - 0.5;
+      float h = hash(id + fl * 31.0);
+      if (h > 0.25) continue;
+      vec2 o = vec2(sin(time * 2.0 + h * 50.0) * 0.15, hash(id + 2.7) - 0.5) * 0.6;
+      float r = 0.12 + 0.2 * hash(id + 5.1);
+      float d = length(f - o);
+      float ring = smoothstep(r, r - 0.04, d) - smoothstep(r - 0.05, r - 0.12, d) * 0.7;
+      float spark = smoothstep(r * 0.35, 0.0, length(f - o - vec2(-r * 0.35, r * 0.35)));
+      acc += (ring * 0.5 + spark) / (1.0 + fl * 0.6);
+    }
+    color = vec4(texture(source, uv).rgb + acc * amount * vec3(1.0, 0.98, 0.9), 1.0);
+  }`;
+
 const PARTICLE_VS = `#version 300 es
 layout(location = 0) in vec2 target;
 layout(location = 1) in vec4 seed;

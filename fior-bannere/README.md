@@ -8,6 +8,24 @@ Doar prezentare de produs: fără prețuri, oferte sau îndemnuri de cumpărare.
 - **1 film de brand** vertical (1080×1920, 26 s, cu sunet), în `video/fior-film.mp4`, plus o copie fără sunet
 - **Filmul 2, „Aurul toamnei”** (1080×1920, 32 s, cu sunet, efecte WebGL), în `video/fior-film-2.mp4`, plus o copie fără sunet
 
+## Videouri de produs (WebGL)
+
+Câte unul pentru fiecare băutură, 20 s, vertical, cu sunet: `video/fior-video-gutui.mp4`, `-sangria`, `-hugo`, `-hard-lemonade`, `-gama` (plus copii fără sunet).
+
+Aceeași structură, cu culorile, ingredientele și tonalitatea fiecărei băuturi:
+1. Lichidul băuturii (aur, vin, verde-auriu, lămâie) din care iese numele în relief.
+2. Sticla luminată din spate, cu ilustrațiile ingredientelor; bule la Hugo și Hard Lemonade.
+3. Zoom în fotografia produsului, văzută prin lichid.
+4. Ingredientele pe beat (zmeură, mure, portocală, scorțișoară etc.), alternând cu sticla și fotografia.
+5. Particulele formează silueta sticlei (sau logo-ul, la gamă), explodează și se reasamblează.
+
+Conținutul fiecărui video (texte, ingrediente, culori) e în `film/produse.js`.
+
+```bash
+python3 fior-bannere/film/sunet-produs.py sangria    # -> film/sunet-sangria.wav
+node fior-bannere/film/render-film.cjs sangria       # -> video/fior-video-sangria.mp4
+```
+
 ## Film 2 – „Aurul toamnei” (WebGL)
 
 1. Aur lichid din care se ridică logo-ul în relief; aurul se retrage cu margini incandescente.
@@ -83,7 +101,7 @@ Reels-urile nu au sunet: muzica se adaugă direct în Instagram, din biblioteca 
 | `carusele.html` | caruselele |
 | `reel.html`, `reel.js` | Reel-urile (`reel.html?c=dupa-job` etc.) |
 | `video-capture.cjs` | captura cadru cu cadru în MP4, folosită de Reels și de film |
-| `film/` | filmele de brand: `desen.js` (desen 2D comun), `gpu.js` (WebGL), `film.js` și `film-2.js` (scenele), `instrumente.py` (sunete comune), `sunet.py` și `sunet-2.py` (coloanele sonore) |
+| `film/` | filmele: `desen.js` (desen 2D), `gpu.js` (WebGL), `shadere.js` (efecte), `motor.js` (scene și post-procesare comune), `film.js`, `film-2.js`, `film-produs.js` + `produse.js` (scenele), `instrumente.py` (sunete comune), `sunet*.py` (coloanele sonore) |
 
 ## Cum modifici
 
