@@ -300,8 +300,8 @@ function sceneNight(local, duration, out) {
   const push = easeInOut(local / duration);
   const windowY = WINDOW.y + WINDOW.height / 2;
   drawInto(layer, () => {
-    scaledAround(CABIN.x, windowY, 1 + 0.1 * push, () => drawNight(local));
-    scaledAround(CABIN.x, windowY, 1 + 0.32 * push, () => {
+    scaledAround(CABIN.x, windowY, 1 + 0.2 * push, () => drawNight(local));
+    scaledAround(CABIN.x, windowY, 1 + 0.55 * push, () => {
       ctx.filter = 'blur(3px)';
       ctx.drawImage(branchCanvas, 0, Math.sin(local * 0.9) * 6 - 6);
     });
@@ -480,19 +480,25 @@ function sceneInside(local, duration, out) {
   // someone has just shaken the globe and put it down: it rocks on the mantel and settles
   const since = Math.max(local - 0.5, 0); // the zoom through the window ends first
   const rock = 0.085 * Math.exp(-2.2 * since) * Math.sin(9.5 * since);
+  // a slow push-in on the globe; the lights behind stay put (parallax)
+  const push = 1 + 0.09 * easeInOut(local / duration);
+  const pivot = { x: 540, y: 1150 };
   const reach = MANTEL_Y - GLOBE.y;
-  const centre = uvPoint(GLOBE.x + reach * Math.sin(rock), MANTEL_Y - reach * Math.cos(rock));
+  const rocked = { x: GLOBE.x + reach * Math.sin(rock), y: MANTEL_Y - reach * Math.cos(rock) };
+  const centre = uvPoint(pivot.x + (rocked.x - pivot.x) * push, pivot.y + (rocked.y - pivot.y) * push);
+  const framed = (draw) => scaledAround(pivot.x, pivot.y, push, draw);
+
   gpu.pass('bokeh', { target: T.c, uniforms: { time: local, aspect: ASPECT, density: 0.3, baseColor: HEARTH.base, glowColor: HEARTH.glow.map((v) => v * (0.9 + 0.1 * Math.sin(local * 6))) } });
-  drawInto(backdrop, () => drawRoom(local));
+  drawInto(backdrop, () => framed(() => drawRoom(local)));
   gpu.pass('compose', { target: T.a, textures: { base: T.c, overlay: gpu.upload(backdrop) } });
-  drawInto(layer, () => rotatedAround(GLOBE.x, MANTEL_Y, rock, () => drawGlobeWorld(local)));
+  drawInto(layer, () => framed(() => rotatedAround(GLOBE.x, MANTEL_Y, rock, () => drawGlobeWorld(local))));
   gpu.pass('globe', {
     target: T.b,
-    uniforms: { time: local, aspect: ASPECT, center: centre, radius: GLOBE.r / H, shake: 1 - settle },
+    uniforms: { time: local, aspect: ASPECT, center: centre, radius: (GLOBE.r * push) / H, shake: 1 - settle },
     textures: { base: T.a, inner: layerTexture() },
   });
   drawInto(textLayer, () => {
-    rotatedAround(GLOBE.x, MANTEL_Y, rock, drawGlobeBase);
+    framed(() => rotatedAround(GLOBE.x, MANTEL_Y, rock, drawGlobeBase));
     goldDust(local, 90, 9, { speed: 20, alpha: 0.7 });
     riseText('Înăuntru,', 540, 300, local, 0.7, { size: 120 });
     riseText('un fior.', 540, 430, local, 1.0, { size: 120, italic: true, gold: true });
