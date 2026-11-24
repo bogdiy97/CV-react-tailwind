@@ -16,8 +16,8 @@ const CAROUSELS = [
         eyebrow: 'Seara după job',
         title: 'Închizi laptopul.<br><em>Deschizi un fior.</em>',
         text: '3 idei simple pentru serile din timpul săptămânii.',
-        photo: 'foto-dupa-job.jpg',
-        photoPosition: 'center top',
+        photo: 'foto-cuplu-apus.jpg',
+        photoPosition: 'center 25%',
       },
       {
         type: 'idea',

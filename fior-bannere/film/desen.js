@@ -20,7 +20,7 @@ const IMAGE_FILES = {
   hlMenta: 'hl-lamaie-menta.png',
   hlGhimbir: 'hl-lamaie-verde-ghimbir.png',
   hlSoc: 'hl-soc-lamaie.png',
-  fotoJob: 'foto-dupa-job.jpg',
+  fotoJob: 'foto-cuplu-apus.jpg',
   fotoPlaja: 'foto-plaja.jpg',
   fotoGutui: 'foto-lichior-gutui.jpg',
   fotoSangria: 'foto-berry-sangria.jpg',

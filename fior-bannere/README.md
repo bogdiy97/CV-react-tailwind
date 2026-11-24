@@ -22,9 +22,21 @@ Aceeași structură, cu culorile, ingredientele și tonalitatea fiecărei băutu
 Conținutul fiecărui video (texte, ingrediente, culori) e în `film/produse.js`.
 
 ```bash
-python3 fior-bannere/film/sunet-produs.py sangria    # -> film/sunet-sangria.wav
 node fior-bannere/film/render-film.cjs sangria       # -> video/fior-video-sangria.mp4
 ```
+
+## Muzica
+
+Toate videourile au muzică compusă din cod (`film/muzica.py`) și cântată cu instrumente reale eșantionate (pian electric, corzi, bas, tobe, celestă, vibrafon) prin FluidSynth, cu banca de sunete FluidR3 GM (licență MIT). Nu există drepturi de autor de rezolvat. Muzica urmează filmul: intro liniștit, strofă, drop pe tăieturile rapide, final cu pian și corzi, chimval la fiecare tranziție.
+
+Cu `--doar-sunet`, scripturile pun muzică nouă pe varianta fără sunet, fără să mai randeze imaginea:
+
+```bash
+node fior-bannere/film/render-film.cjs sangria --doar-sunet
+node fior-bannere/render-reels.cjs la-ski --doar-sunet
+```
+
+Necesită: `apt install fluidsynth fluid-soundfont-gm` și `pip install mido numpy`.
 
 ## Film 2 – „Aurul toamnei” (WebGL)
 
@@ -36,7 +48,6 @@ node fior-bannere/film/render-film.cjs sangria       # -> video/fior-video-sangr
 6. Final: 30.000 de particule formează logo-ul, explodează pe drop și se reasamblează.
 
 ```bash
-python3 fior-bannere/film/sunet-2.py        # coloana sonoră -> film/sunet-2.wav
 node fior-bannere/film/render-film.cjs 2    # -> video/fior-film-2.mp4 și video/fior-film-2-fara-sunet.mp4
 ```
 
@@ -44,14 +55,11 @@ Randarea folosește WebGL prin Chromium (merge și fără placă video, mai înc
 
 ## Film de brand
 
-Logo-ul se formează din particule aurii, apoi apar sticla de gutui cu o rază de lumină, cele două fotografii cu oameni, cadre rapide pe ritm cu Berry Sangria, Elderberry Hugo, Lichior de gutui și Hard Lemonade, gama completă pe o orbită 3D și finalul „Fiecare detaliu contează.”
-
-Sunetul e generat din cod (`film/sunet.py`), deci nu există drepturi de autor de rezolvat.
+Logo-ul se formează din particule aurii, apoi apar sticla de gutui cu o rază de lumină, fotografiile cu oameni (cuplul la apus, fata de la lac), cadre rapide pe ritm cu Berry Sangria, Elderberry Hugo, Lichior de gutui și Hard Lemonade, gama completă pe o orbită 3D și finalul „Fiecare detaliu contează.”
 
 ```bash
 python3 fior-bannere/film/puncte_logo.py   # doar dacă se schimbă logo-ul
-python3 fior-bannere/film/sunet.py         # coloana sonoră -> film/sunet.wav
-node fior-bannere/film/render-film.cjs     # -> video/fior-film.mp4 și video/fior-film-fara-sunet.mp4
+node fior-bannere/film/render-film.cjs 1   # -> video/fior-film.mp4 și video/fior-film-fara-sunet.mp4
 ```
 
 ## Postări
@@ -81,7 +89,7 @@ Fiecare carusel are și o variantă Reel cu același conținut, animată.
 | `png/carusele/langa-brad/` | `video/langa-brad.mp4` | Lângă brad: Fior de Crăciun, punch de sărbători, înghețată cu gutui |
 | `png/carusele/retete/` | `video/retete.mp4` | 4 rețete: Gutui sour, Sangria royale, Hugo smash, Ginger lemonade |
 
-Videourile din carusele au o coloană sonoră generată din cod (`film/sunet-carusel.py`), cu „whoosh” la fiecare schimbare de slide. Copiile `-fara-sunet.mp4` sunt pentru cine vrea muzică din biblioteca Instagram.
+Videourile din carusele au muzică (vezi „Muzica”), cu chimval la fiecare schimbare de slide. Copiile `-fara-sunet.mp4` sunt pentru cine vrea muzică din biblioteca Instagram.
 
 ## Sursa materialelor
 
@@ -101,7 +109,7 @@ Videourile din carusele au o coloană sonoră generată din cod (`film/sunet-car
 | `carusele.html` | caruselele |
 | `reel.html`, `reel.js` | Reel-urile (`reel.html?c=dupa-job` etc.) |
 | `video-capture.cjs` | captura cadru cu cadru în MP4, folosită de Reels și de film |
-| `film/` | filmele: `desen.js` (desen 2D), `gpu.js` (WebGL), `shadere.js` (efecte), `motor.js` (scene și post-procesare comune), `film.js`, `film-2.js`, `film-produs.js` + `produse.js` (scenele), `instrumente.py` (sunete comune), `sunet*.py` (coloanele sonore) |
+| `film/` | filmele: `desen.js` (desen 2D), `gpu.js` (WebGL), `shadere.js` (efecte), `motor.js` (scene și post-procesare comune), `film.js`, `film-2.js`, `film-produs.js` + `produse.js` (scenele), `muzica.py` (muzica: MIDI cântat cu FluidSynth) |
 
 ## Cum modifici
 
