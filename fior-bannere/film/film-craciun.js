@@ -321,20 +321,111 @@ function sceneTree(local, duration, out) {
   snowPass(T.b, out, local, 0.4);
 }
 
+// A red satin bow, about `size` px wide, centred on its knot.
+function drawBow(x, y, size) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(size / 220, size / 220);
+  const satin = ctx.createLinearGradient(-110, -40, 110, 50);
+  [[0, '#6d0a16'], [0.25, '#e23b4a'], [0.5, '#96101f'], [0.75, '#ea6c76'], [1, '#6d0a16']].forEach(([at, color]) => satin.addColorStop(at, color));
+  ctx.fillStyle = satin;
+  ctx.strokeStyle = 'rgba(50,4,9,.6)';
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = 'rgba(0,0,0,.45)';
+  ctx.shadowBlur = 14;
+  ctx.shadowOffsetY = 6;
+  [-1, 1].forEach((side) => {
+    ctx.beginPath(); // tail
+    ctx.moveTo(0, 4);
+    ctx.lineTo(side * 58, 118);
+    ctx.lineTo(side * 34, 106);
+    ctx.lineTo(side * 20, 126);
+    ctx.lineTo(side * -4, 12);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath(); // loop
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(side * 44, -76, side * 128, -52, side * 108, 6);
+    ctx.bezierCurveTo(side * 122, 56, side * 42, 42, 0, 8);
+    ctx.fill();
+    ctx.stroke();
+  });
+  ctx.beginPath();
+  ctx.roundRect(-17, -20, 34, 40, 11);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+// A big glass bauble swinging in on its string, with a gold line-art icon on it.
+function drawBauble(cl, { icon, colors }) {
+  const angle = 0.42 * Math.exp(-3.2 * cl) * Math.cos(10 * cl);
+  const length = 900;
+  const x = 540 + length * Math.sin(angle);
+  const y = -90 + length * Math.cos(angle);
+  const r = 250;
+  ctx.strokeStyle = COLORS.gold;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(540, -90);
+  ctx.lineTo(x, y - r - 30);
+  ctx.stroke();
+  const ball = ctx.createRadialGradient(x - r * 0.38, y - r * 0.4, r * 0.08, x, y, r);
+  ball.addColorStop(0, colors[0]);
+  ball.addColorStop(0.42, colors[1]);
+  ball.addColorStop(1, colors[2]);
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.5)';
+  ctx.shadowBlur = 60;
+  ctx.shadowOffsetY = 30;
+  ctx.fillStyle = ball;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  const cap = ctx.createLinearGradient(x - 44, 0, x + 44, 0);
+  [[0, '#6b4a16'], [0.4, '#f1dca4'], [1, '#8f6f2e']].forEach(([at, color]) => cap.addColorStop(at, color));
+  ctx.fillStyle = cap;
+  ctx.fillRect(x - 42, y - r - 34, 84, 46);
+  drawIcon(icon, x, y + 6, r * 1.15, { alpha: 0.9 });
+  ctx.save(); // highlight
+  ctx.globalCompositeOperation = 'lighter';
+  const shine = ctx.createRadialGradient(x - r * 0.42, y - r * 0.46, 0, x - r * 0.42, y - r * 0.46, r * 0.5);
+  shine.addColorStop(0, 'rgba(255,255,255,.55)');
+  shine.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = shine;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  ctx.restore();
+}
+
 const GIFTS = [
-  [{ icon: 'quince-branch', word: 'Cald', sub: 'și auriu' }, { bottles: ['gutui'], name: 'Lichior de gutui', label: 'PENTRU SERILE LUNGI', stage: STAGES.gutui }],
-  [{ icon: 'berry', word: 'Roșul', sub: 'sărbătorilor' }, { bottles: ['sangria'], name: 'Berry Sangria', label: 'ZMEURĂ · MURE · SCORȚIȘOARĂ', stage: STAGES.sangria }],
-  [{ icon: 'snowflake', word: 'Proaspăt', sub: 'ca prima zăpadă' }, { bottles: ['hugo'], name: 'Elderberry Hugo', label: 'FLORI DE SOC · LĂMÂIE · MENTĂ', stage: STAGES.hugo }],
-  [{ icon: 'citrus', word: 'Pentru noaptea', sub: 'dintre ani' }, { bottles: HL_ALL, name: 'Hard Lemonade', label: 'PATRU AROME', stage: STAGES.lemon }],
+  [{ icon: 'quince-branch-dark', word: 'Cald', sub: 'și auriu', colors: ['#fff0c4', '#d9912b', '#5e3408'] }, { bottles: ['gutui'], name: 'Lichior de gutui', label: 'PENTRU SERILE LUNGI', stage: STAGES.gutui }],
+  [{ icon: 'berry', word: 'Roșul', sub: 'sărbătorilor', colors: ['#ffb0b0', '#b3162a', '#3d0510'] }, { bottles: ['sangria'], name: 'Berry Sangria', label: 'ZMEURĂ · MURE · SCORȚIȘOARĂ', stage: STAGES.sangria }],
+  [{ icon: 'snowflake', word: 'Proaspăt', sub: 'ca prima zăpadă', colors: ['#e6ffd9', '#3f8f45', '#0f3316'] }, { bottles: ['hugo'], name: 'Elderberry Hugo', label: 'FLORI DE SOC · LĂMÂIE · MENTĂ', stage: STAGES.hugo }],
+  [{ icon: 'citrus-dark', word: 'Pentru noaptea', sub: 'dintre ani', colors: ['#fff6c9', '#d6ab1d', '#5c4302'] }, { bottles: HL_ALL, name: 'Hard Lemonade', label: 'PATRU AROME', stage: STAGES.lemon }],
 ];
+
+// Bows on the bottle necks.
+const bowOn = (item, baseY) => drawBow(item.x, baseY - item.height * 0.63, item.height * 0.27);
 
 function sceneGifts(local, duration, out) {
   const index = Math.min(7, Math.floor(local / BEAT));
   const cl = local - index * BEAT;
   const [card, visual] = GIFTS[Math.floor(index / 2)];
-  if (index % 2 === 0) iconCard(cl, T.c, { ...card, stage: visual.stage, time: local });
-  else bottleCut(cl, T.c, { ...visual, zoomIn: 1.16 - 0.16 * easeOut(cl / BEAT) });
-  gpu.pass('shock', { target: out, uniforms: { age: cl, center: [0.5, 0.5], aspect: ASPECT, strength: 1 }, textures: { source: T.c } });
+  if (index % 2 === 0) {
+    gpu.pass('bokeh', { target: T.a, uniforms: { time: local, aspect: ASPECT, density: 0.3, baseColor: visual.stage.base, glowColor: visual.stage.glow.map((v) => v * 0.8) } });
+    drawInto(textLayer, () => {
+      const pop = easeOut(progress(cl, 0, 0.3));
+      drawBauble(cl, card);
+      text(card.word, 540, 1340, { size: 130, alpha: pop, shadow: 24, maxWidth: 960 });
+      text(card.sub, 540, 1460, { size: 96, italic: true, color: COLORS.goldLight, alpha: pop, shadow: 24, maxWidth: 960 });
+    });
+    gpu.pass('compose', { target: T.c, textures: { base: T.a, overlay: textTexture() } });
+  } else {
+    bottleCut(cl, T.c, { ...visual, zoomIn: 1.16 - 0.16 * easeOut(cl / BEAT), decorate: bowOn });
+  }
+  snowPass(T.c, T.b, local, 0.35);
+  gpu.pass('shock', { target: out, uniforms: { age: cl, center: [0.5, 0.5], aspect: ASPECT, strength: 1 }, textures: { source: T.b } });
 }
 
 const RING = ['gutui', 'hlZmeura', 'sangria', 'hlMenta', 'hugo', 'hlGhimbir', 'hlSoc'];
@@ -401,7 +492,9 @@ function aberrationAt(t) {
 
 window.renderFrame = (t) => renderTimeline(SCENES, t, { duration: VIDEO_DURATION, aberration: aberrationAt(t) });
 
-window.videoReady = Promise.all([loadAssets(), ...ICON_IDS.map(loadIcon)]).then(() => {
+const DARK_ICONS = ['quince-branch', 'citrus'].map((id) => loadIcon(id, '#4a2c08', `${id}-dark`));
+
+window.videoReady = Promise.all([loadAssets(), ...ICON_IDS.map((id) => loadIcon(id)), ...DARK_ICONS]).then(() => {
   setupEngine();
   const treeMask = makeCanvas();
   drawInto(treeMask, drawTree);

@@ -140,12 +140,14 @@ function iconCard(cl, out, { icon, word, sub, stage, time = cl }) {
   gpu.pass('compose', { target: out, textures: { base: T.a, overlay: textTexture() } });
 }
 
-// Bottles on a lit stage with their name underneath.
-function bottleCut(cl, out, { bottles, name, label, stage, zoomIn = 1 }) {
+// Bottles on a lit stage with their name underneath. decorate(item, baseY) may draw on top of each bottle.
+function bottleCut(cl, out, { bottles, name, label, stage, zoomIn = 1, decorate = null }) {
   litStage(cl, out, {
     ...stage, lightY: 980, floorY: 1500, intensity: 1.8,
-    drawBottles: () => bottleRow(bottles, 1000 * (0.92 + 0.08 * zoomIn), 240)
-      .forEach((item) => bottle(img[item.key], item.x, 1500, item.height, { reflection: 0.3 })),
+    drawBottles: () => bottleRow(bottles, 1000 * (0.92 + 0.08 * zoomIn), 240).forEach((item) => {
+      bottle(img[item.key], item.x, 1500, item.height, { reflection: 0.3 });
+      if (decorate) decorate(item, 1500);
+    }),
     drawText: () => beatLabels(name, label, cl),
   });
 }

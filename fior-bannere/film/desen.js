@@ -253,18 +253,18 @@ function goldDust(t, count, seed, { speed = 40, alpha = 0.7 } = {}) {
 
 const icons = {};
 
-// Loads a gold line-art icon from the shared SVG sprite (FIOR_SPRITE in ../fior.js) into `icons`, with even lines.
-function loadIcon(id) {
+// Loads a line-art icon from the shared SVG sprite (FIOR_SPRITE in ../fior.js) into `icons[key]`, with even lines.
+function loadIcon(id, color = COLORS.goldLight, key = id) {
   const viewBox = FIOR_SPRITE.match(new RegExp(`<symbol id="${id}" viewBox="([^"]+)"`))[1];
   const [, , boxWidth, boxHeight] = viewBox.split(' ').map(Number);
   const width = 920;
   const height = Math.round((width * boxHeight) / boxWidth);
   const defs = FIOR_SPRITE.match(/<defs>[\s\S]*<\/defs>/)[0];
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${viewBox}" color="${COLORS.goldLight}">`
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${viewBox}" color="${color}">`
     + `<style>*{stroke-width:${(boxWidth / 150).toFixed(2)}px !important}</style>${defs}<use href="#${id}"/></svg>`;
   return new Promise((resolve, reject) => {
     const image = new Image();
-    image.onload = () => resolve((icons[id] = image));
+    image.onload = () => resolve((icons[key] = image));
     image.onerror = () => reject(new Error(`Icon ${id} failed`));
     image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   });

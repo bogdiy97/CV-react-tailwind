@@ -212,7 +212,7 @@ function setupProduct() {
   particles = particlesFrom(mask, { x: 0, y: 0, width: W, height: H }, 30000, 131);
 }
 
-window.videoReady = Promise.all([loadAssets(), ...ICON_IDS.map(loadIcon)]).then(() => {
+window.videoReady = Promise.all([loadAssets(), ...ICON_IDS.map((id) => loadIcon(id))]).then(() => {
   setupProduct();
   window.renderFrame(0);
 });
