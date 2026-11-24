@@ -101,17 +101,15 @@ const sceneSteps = footageScene(
 const scenePortrait = footageScene(
   (local, duration) => ({ clip: 'portret', position: local * FPS, fx: lerp(0.5, 0.58, easeInOut(local / duration)), zoom: 1 }),
   (local) => {
-    scrim(0.25, 0.75);
-    riseText('Fiecare detaliu', 540, 1450, local, 0.3, { size: 112, shadow: 30 });
+    scrim(0.25, 0.95);
+    riseText('Fiecare detaliu', 540, 1500, local, 0.3, { size: 112, shadow: 30 });
+    riseText('contează.', 540, 1625, local, 0.9, { size: 124, italic: true, gold: true, shadow: 30 });
   },
 );
 
 const sceneLabel = footageScene(
   (local, duration) => ({ clip: 'eticheta', position: local * FPS, fx: lerp(0.46, 0.55, local / duration), zoom: 1 }),
-  (local) => {
-    scrim(0.25, 0.75);
-    riseText('contează.', 540, 1450, local, 0.2, { size: 128, italic: true, gold: true, shadow: 30 });
-  },
+  () => scrim(0.2, 0.45), // no words here: the label is the detail
 );
 
 // The drop, one step per beat: a triptych of widescreen bands builds up (the footage at its full width),
