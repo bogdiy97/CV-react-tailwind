@@ -20,7 +20,8 @@ let overlayTexture;
 function setupEngine() {
   Object.entries(SHADERS).forEach(([name, source]) => gpu.program(name, source));
   gpu.program('particles', PARTICLE_FS, { vertex: PARTICLE_VS, raw: true });
-  ['a', 'b', 'c', 'frameA', 'frameB', 'out'].forEach((name) => { T[name] = gpu.target(name); });
+  // a, b: used by the helpers below; c, d: free for the scenes; frameA, frameB: the two sides of a transition
+  ['a', 'b', 'c', 'd', 'frameA', 'frameB', 'out'].forEach((name) => { T[name] = gpu.target(name); });
   T.gold = gpu.target('gold', 0.5);
   T.liquid = gpu.target('liquid', 1);
   T.rays = gpu.target('rays', 0.5);

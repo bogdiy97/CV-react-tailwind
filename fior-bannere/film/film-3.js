@@ -50,7 +50,10 @@ function footageScene(shot, drawWords, look = LOOK) {
       const frame = shot(local, duration);
       drawInto(layer, () => drawClip(frame.clip, frame.position, frame));
       gpu.pass('grade', { target: T.a, uniforms: { ...look, time: local + (look.leakOffset || 0) }, textures: { source: layerTexture() } });
-      drawInto(textLayer, () => drawWords(local, duration));
+      drawInto(textLayer, () => {
+        goldDust(local, 70, 57, { speed: 34, alpha: 0.55 }); // the same gold dust as in the product scenes
+        drawWords(local, duration);
+      });
       gpu.pass('compose', { target: out, textures: { base: T.a, overlay: textTexture() } });
     },
   };
@@ -69,9 +72,17 @@ const sceneDoor = footageScene(
   },
 );
 
+// Speed ramp for the steps: quick over the dress and the tilt up, slow motion once her face is in frame.
+// Whole numbers of footage frames per output frame (3, then 2, then 1), so no two frames are ever blended.
+function rampPosition(local) {
+  const frame = Math.round(local * FPS);
+  if (frame <= 24) return 20 + 3 * frame;
+  if (frame <= 39) return 92 + 2 * (frame - 24);
+  return 122 + (frame - 39);
+}
+
 const sceneSteps = footageScene(
-  // speed ramp: quick over the dress and the tilt up, slow motion once her face is in frame
-  (local, duration) => ({ clip: 'trepte', position: 20 + FPS * (2.6 * local - (1.8 * local * local) / (2 * duration)), fx: lerp(0.52, 0.47, easeInOut(local / duration)), zoom: 1 }),
+  (local, duration) => ({ clip: 'trepte', position: rampPosition(local), fx: lerp(0.52, 0.47, easeInOut(local / duration)), zoom: 1 }),
   (local) => {
     scrim(0.3, 0.75);
     // three words from the brand's own description, one per bar of the music
@@ -108,8 +119,8 @@ const BAND = H / 3;
 const DROP_CUTS = [
   { bottles: ['gutui'], name: 'Lichior de gutui', label: 'NEFILTRAT · DIN FRUCTE ROMÂNEȘTI', stage: STAGES.gutui },
   { bottles: ['sangria'], name: 'Berry Sangria', label: 'COCKTAIL READY TO DRINK', stage: STAGES.sangria },
-  { bottles: ['hugo'], name: 'Elderberry Hugo', label: 'COCKTAIL READY TO DRINK', stage: STAGES.hugo },
-  { bottles: HL_ALL, name: 'Hard Lemonade', label: 'PATRU AROME', stage: STAGES.lemon },
+  { bottles: ['hugo'], name: 'Elderberry Hugo', label: 'COCKTAIL READY TO DRINK', stage: STAGES.hugo, sparkling: true },
+  { bottles: HL_ALL, name: 'Hard Lemonade', label: 'PATRU AROME', stage: STAGES.lemon, sparkling: true },
   { clip: 'palarie', from: 112, fx: 0.48 },
 ];
 const dropStep = (local) => {
@@ -143,6 +154,9 @@ const sceneDrop = {
     } else if (cut.clip) {
       drawInto(layer, () => drawClip(cut.clip, cut.from + cl * FPS, { fx: cut.fx, fy: cut.fy, zoom: (cut.zoom || 1) * zoomIn }));
       gpu.pass('grade', { target: T.c, uniforms: { ...LOOK, time: local }, textures: { source: layerTexture() } });
+    } else if (cut.sparkling) {
+      bottleCut(cl, T.d, { ...cut, zoomIn });
+      gpu.pass('bubbles', { target: T.c, uniforms: { time: local, aspect: ASPECT, amount: 0.5 }, textures: { source: T.d } });
     } else {
       bottleCut(cl, T.c, { ...cut, zoomIn });
     }
