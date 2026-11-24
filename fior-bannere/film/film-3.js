@@ -41,7 +41,7 @@ const SMALL = { family: SANS, weight: 700, size: 24, spacing: 9, color: COLORS.g
 
 // ---------- scenes ----------
 const sceneDoor = footageScene(
-  (local, duration) => ({ clip: 'usa', position: 10 + local * FPS, fx: lerp(0.4, 0.45, local / duration), zoom: lerp(1, 1.06, local / duration) }),
+  (local, duration) => ({ clip: 'usa', position: 10 + local * FPS, fx: lerp(0.42, 0.5, local / duration), zoom: lerp(1, 1.06, local / duration) }),
   (local) => {
     scrim(0.45, 0.8);
     logo(540, 230, 250, { glow: 0.3, alpha: easeOut(progress(local, 0.4, 0.8)) });
@@ -51,7 +51,7 @@ const sceneDoor = footageScene(
 );
 
 const sceneSteps = footageScene(
-  (local, duration) => ({ clip: 'trepte', position: 6 + local * FPS, fx: lerp(0.6, 0.47, easeInOut(local / duration)), zoom: 1 }),
+  (local, duration) => ({ clip: 'trepte', position: 6 + local * FPS, fx: lerp(0.52, 0.47, easeInOut(local / duration)), zoom: 1 }),
   (local) => {
     scrim(0.3, 0.7);
     reveal('LICHIOR  ·  COCKTAILS  ·  HARD LEMONADE', 540, 1500, local, 0.6, SMALL);
@@ -59,7 +59,7 @@ const sceneSteps = footageScene(
 );
 
 const scenePortrait = footageScene(
-  (local, duration) => ({ clip: 'portret', position: 20 + local * FPS, fx: lerp(0.34, 0.55, easeInOut(local / duration)), zoom: 1 }),
+  (local, duration) => ({ clip: 'portret', position: local * FPS, fx: lerp(0.5, 0.58, easeInOut(local / duration)), zoom: 1 }),
   (local) => {
     scrim(0.25, 0.75);
     reveal('Fiecare detaliu', 540, 1450, local, 0.3, { size: 112, shadow: 30 });
@@ -67,7 +67,7 @@ const scenePortrait = footageScene(
 );
 
 const sceneLabel = footageScene(
-  (local, duration) => ({ clip: 'eticheta', position: local * FPS, fx: 0.4, zoom: lerp(1, 1.08, local / duration) }),
+  (local, duration) => ({ clip: 'eticheta', position: local * FPS, fx: lerp(0.46, 0.55, local / duration), zoom: 1 }),
   (local) => {
     scrim(0.25, 0.75);
     reveal('contează.', 540, 1450, local, 0.2, { size: 128, italic: true, color: COLORS.goldLight, shadow: 30 });
@@ -75,13 +75,13 @@ const sceneLabel = footageScene(
 );
 
 const DROP_CUTS = [
-  { clip: 'pasi', from: 6, fx: 0.3 },
+  { clip: 'pasi', from: 0, fx: 0.52 },
   { bottles: ['gutui'], name: 'Lichior de gutui', label: 'NEFILTRAT · DIN FRUCTE ROMÂNEȘTI', stage: STAGES.gutui },
-  { clip: 'palarie', from: 24, fx: 0.5 },
+  { clip: 'palarie', from: 55, fx: 0.48 },
   { bottles: ['sangria'], name: 'Berry Sangria', label: 'COCKTAIL READY TO DRINK', stage: STAGES.sangria },
-  { clip: 'pasi', from: 52, fx: 0.62 },
+  { clip: 'pasi', from: 56, fx: 0.56 },
   { bottles: ['hugo'], name: 'Elderberry Hugo', label: 'COCKTAIL READY TO DRINK', stage: STAGES.hugo },
-  { clip: 'masa', from: 120, fx: 0.3 },
+  { clip: 'masa', from: 165, fx: 0.5 },
   { bottles: HL_ALL, name: 'Hard Lemonade', label: 'PATRU AROME', stage: STAGES.lemon },
 ];
 const dropCut = (local) => {
@@ -121,7 +121,7 @@ function sceneOrbit(local, duration, out) {
 }
 
 const scenePour = footageScene(
-  (local, duration) => ({ clip: 'turnare', position: (local / duration) * (CLIP_FRAMES.turnare - 2), fx: 0.5, zoom: lerp(1.08, 1, local / duration) }),
+  (local, duration) => ({ clip: 'turnare', position: (local / duration) * (CLIP_FRAMES.turnare - 2), fx: 0.38, zoom: lerp(1.08, 1, local / duration) }),
   (local) => {
     scrim(0.55, 0.6);
     reveal('în fiecare', 540, 330, local, 0.5, { size: 130, shadow: 30 });
