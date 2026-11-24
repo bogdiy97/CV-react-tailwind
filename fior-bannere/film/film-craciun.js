@@ -205,7 +205,7 @@ function sceneNight(local, duration, out) {
   snowPass(T.a, out, local, 0.85);
 }
 
-const GLOBE = { x: 540, y: 960, r: 400 };
+const GLOBE = { x: 540, y: 950, r: 400 };
 const HEARTH = { base: [0.05, 0.018, 0.006], glow: [0.5, 0.2, 0.05] };
 
 // The little world inside the snow globe: the bottle on a snow mound between two small firs.
@@ -281,9 +281,88 @@ function drawGlobeBase() {
   logo(x, top + 121, 150, { glow: 0.2 });
 }
 
+// The room behind the globe: a wooden mantel under warm bokeh lights, fir branches along it, two candles.
+const MANTEL_Y = 1470;
+
+function drawFlame(x, y, size, local, phase) {
+  const flicker = 0.88 + 0.12 * Math.sin(local * 9 + phase) * Math.sin(local * 3.7 + phase * 2);
+  const lean = Math.sin(local * 5 + phase) * size * 0.08;
+  lightLeak(x, y - size * 0.4, size * 4.2, '255,170,70', 0.42 * flicker);
+  const flame = ctx.createRadialGradient(x, y - size * 0.2, 0, x, y - size * 0.45, size);
+  flame.addColorStop(0, '#fffbe6');
+  flame.addColorStop(0.35, '#ffd66e');
+  flame.addColorStop(0.75, 'rgba(255,140,40,.85)');
+  flame.addColorStop(1, 'rgba(255,110,30,0)');
+  ctx.fillStyle = flame;
+  ctx.beginPath();
+  ctx.moveTo(x - size * 0.34, y);
+  ctx.quadraticCurveTo(x - size * 0.42, y - size * 0.6, x + lean, y - size * 1.25 * flicker);
+  ctx.quadraticCurveTo(x + size * 0.42, y - size * 0.6, x + size * 0.34, y);
+  ctx.quadraticCurveTo(x, y + size * 0.22, x - size * 0.34, y);
+  ctx.fill();
+}
+
+function drawCandle(x, height, local, phase) {
+  const top = MANTEL_Y - height;
+  const wax = ctx.createLinearGradient(x - 34, 0, x + 34, 0);
+  wax.addColorStop(0, '#8a1622');
+  wax.addColorStop(0.45, '#d8394a');
+  wax.addColorStop(1, '#5c0c15');
+  ctx.fillStyle = wax;
+  ctx.fillRect(x - 34, top, 68, height);
+  ctx.fillStyle = '#e8616f';
+  ctx.beginPath();
+  ctx.ellipse(x, top, 34, 9, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#2a1408';
+  ctx.fillRect(x - 2, top - 16, 4, 18);
+  drawFlame(x, top - 14, 44, local, phase);
+}
+
+function drawRoom(local) {
+  const wood = ctx.createLinearGradient(0, MANTEL_Y, 0, H);
+  wood.addColorStop(0, '#5a3015');
+  wood.addColorStop(0.06, '#3a1d0b');
+  wood.addColorStop(1, '#120803');
+  ctx.fillStyle = wood;
+  ctx.fillRect(0, MANTEL_Y, W, H - MANTEL_Y);
+  ctx.fillStyle = 'rgba(255,214,150,.35)';
+  ctx.fillRect(0, MANTEL_Y, W, 3);
+  // the polished wood mirrors the candle light and the globe
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  [[118, 0.3, 130], [968, 0.26, 120], [540, 0.22, 330]].forEach(([x, strength, width]) => {
+    const sheen = ctx.createRadialGradient(x, MANTEL_Y + 10, 0, x, MANTEL_Y + 10, width);
+    sheen.addColorStop(0, `rgba(255,170,80,${strength * (0.9 + 0.1 * Math.sin(local * 7 + x))})`);
+    sheen.addColorStop(1, 'rgba(255,170,80,0)');
+    ctx.fillStyle = sheen;
+    ctx.fillRect(x - width, MANTEL_Y, width * 2, 230);
+  });
+  ctx.restore();
+  const rand = seededRandom(404);
+  for (let i = 0; i < 520; i += 1) { // fir garland lying on the mantel
+    const x = rand() * W;
+    const y = MANTEL_Y + 4 - rand() * 34 * (0.4 + Math.abs(Math.sin(x / 170)));
+    const lean = -Math.PI / 2 + (rand() - 0.5) * 2.4;
+    const length = 22 + rand() * 34;
+    const shade = 0.35 + 0.65 * rand();
+    ctx.strokeStyle = `rgb(${Math.round(12 + 26 * shade)},${Math.round(46 + 70 * shade)},${Math.round(26 + 30 * shade)})`;
+    ctx.lineWidth = 2 + rand() * 2.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(lean) * length, y + Math.sin(lean) * length);
+    ctx.stroke();
+  }
+  drawCandle(118, 250, local, 0);
+  drawCandle(968, 190, local, 2.1);
+}
+
 function sceneInside(local, duration, out) {
   const settle = easeOut(progress(local, 0, 3.2));
-  gpu.pass('bokeh', { target: T.a, uniforms: { time: local, aspect: ASPECT, density: 0.3, baseColor: HEARTH.base, glowColor: HEARTH.glow.map((v) => v * (0.9 + 0.1 * Math.sin(local * 6))) } });
+  gpu.pass('bokeh', { target: T.c, uniforms: { time: local, aspect: ASPECT, density: 0.3, baseColor: HEARTH.base, glowColor: HEARTH.glow.map((v) => v * (0.9 + 0.1 * Math.sin(local * 6))) } });
+  drawInto(backdrop, () => drawRoom(local));
+  gpu.pass('compose', { target: T.a, textures: { base: T.c, overlay: gpu.upload(backdrop) } });
   drawInto(layer, () => drawGlobeWorld(local));
   gpu.pass('globe', {
     target: T.b,
