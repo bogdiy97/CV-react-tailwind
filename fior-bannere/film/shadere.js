@@ -167,12 +167,14 @@ const SHADERS = {
   // Bloom, chromatic aberration, highlight roll-off, vignette, grain, the sharp overlay and fades.
   final: `uniform sampler2D frame; uniform sampler2D bloom; uniform sampler2D overlay;
     uniform float bloomStrength; uniform float aberration; uniform float overlayAlpha; uniform float fade; uniform float aspect;
+    uniform float halation; // red glow around the highlights, like light scattering in film stock
     void main() {
       vec2 d = uv - 0.5;
       float r2 = dot(d * vec2(aspect, 1.0), d * vec2(aspect, 1.0));
       vec2 o = d * aberration * (0.3 + r2 * 3.0);
       vec3 c = vec3(texture(frame, uv - o).r, texture(frame, uv).g, texture(frame, uv + o).b);
-      c += texture(bloom, uv).rgb * bloomStrength;
+      vec3 glow = texture(bloom, uv).rgb;
+      c += glow * bloomStrength + glow * vec3(1.0, 0.32, 0.12) * halation;
       c = c / (1.0 + max(c - 0.85, 0.0));
       c *= 1.0 - smoothstep(0.2, 0.8, r2 * 2.2) * 0.5;
       c += (hash(uv * resolution + fract(time * 13.1) * 97.0) - 0.5) * 0.022;

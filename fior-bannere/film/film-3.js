@@ -228,7 +228,7 @@ function aberrationAt(t) {
 
 window.renderFrame = async (t) => {
   await prepareFootage(SCENES, t);
-  renderTimeline(SCENES, t, { duration: VIDEO_DURATION, aberration: aberrationAt(t) });
+  renderTimeline(SCENES, t, { duration: VIDEO_DURATION, aberration: aberrationAt(t), halation: 0.35 });
 };
 
 window.videoReady = loadAssets().then(() => {

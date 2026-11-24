@@ -257,7 +257,7 @@ function activeScenes(scenes, t) {
 }
 
 // Draws the frame at `t`: the current scene (or a transition), then bloom and the final grade.
-function renderTimeline(scenes, t, { duration, aberration = 0.004, bloomStrength = 0.6 }) {
+function renderTimeline(scenes, t, { duration, aberration = 0.004, bloomStrength = 0.6, halation = 0 }) {
   const { scene, previous, transition, progressIn } = activeScenes(scenes, t);
   if (transition) transition.draw(previous, scene, t, progressIn);
   else drawScene(scene, t, T.out);
@@ -269,7 +269,7 @@ function renderTimeline(scenes, t, { duration, aberration = 0.004, bloomStrength
   });
   gpu.pass('final', {
     uniforms: {
-      time: t, aspect: ASPECT, bloomStrength, aberration,
+      time: t, aspect: ASPECT, bloomStrength, aberration, halation,
       overlayAlpha: progress(t, 0.6, 0.6), fade: Math.max(1 - progress(t, 0, 0.35), progress(t, duration - 0.9, 0.9)),
     },
     textures: { frame: T.out, bloom: T.bloomA, overlay: overlayTexture },
