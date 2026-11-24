@@ -250,6 +250,50 @@ SHADERS.snow = `uniform sampler2D source; uniform float aspect; uniform float am
     color = vec4(texture(source, uv).rgb + acc * amount * vec3(0.9, 0.95, 1.0), 1.0);
   }`;
 
+// A snow globe: glass ball at `center` (uv) with `radius` (in screen heights). Shows `inner` (a little world
+// with alpha) in front of the magnified `base`, with swirling snow, a rim and highlights. shake: 1 = just shaken.
+SHADERS.globe = `uniform sampler2D base; uniform sampler2D inner; uniform vec2 center; uniform float radius;
+  uniform float aspect; uniform float shake;
+  void main() {
+    vec2 d = uv - center; d.x *= aspect;
+    float r = length(d) / radius;
+    vec3 c = texture(base, uv).rgb;
+    if (r < 1.0) {
+      vec2 q = d / radius;
+      float z = sqrt(1.0 - r * r);
+      vec2 toUv = vec2(radius / aspect, radius);
+      vec3 through = texture(base, center + q * (0.5 + 0.4 * r * r) * toUv).rgb * 0.7;
+      vec4 world = texture(inner, center + q * mix(0.92, 1.0, r * r) * toUv);
+      vec3 g = mix(through, world.rgb, world.a);
+
+      // snow: swirls after a shake, then falls gently
+      float snow = 0.0;
+      for (int layer = 0; layer < 3; layer++) {
+        float fl = float(layer);
+        float turn = (0.35 + shake * 2.2) * (1.0 - r) * (0.6 + fl * 0.3) + time * 0.12 * (fl + 1.0) * shake;
+        vec2 p = mat2(cos(turn), -sin(turn), sin(turn), cos(turn)) * q;
+        vec2 cell = p * (7.0 + fl * 5.0) + vec2(fl * 3.7 + sin(time * 0.4 + fl) * 0.4, time * (0.35 + fl * 0.12));
+        vec2 id = floor(cell);
+        vec2 f = fract(cell) - 0.5;
+        float h = hash(id + fl * 13.0);
+        if (h > 0.34 + shake * 0.3) continue;
+        vec2 o = (vec2(hash(id + 2.1), hash(id + 6.4)) - 0.5) * 0.6;
+        float size = 0.07 + 0.09 * hash(id + 9.9);
+        snow += smoothstep(size, size * 0.3, length(f - o)) * (0.9 - fl * 0.2);
+      }
+      g += snow * vec3(0.95, 0.97, 1.0) * smoothstep(1.0, 0.9, r);
+
+      // glass: rim, a soft window highlight and its crescent, a warm bounce at the bottom
+      g += pow(r, 7.0) * 0.4 * vec3(1.0, 0.94, 0.86);
+      g += exp(-dot(q - vec2(-0.42, 0.5), q - vec2(-0.42, 0.5)) * 16.0) * 0.55;
+      float angle = atan(q.y, q.x);
+      g += smoothstep(0.8, 0.88, r) * smoothstep(0.96, 0.9, r) * smoothstep(0.5, 0.0, abs(angle - 2.3)) * 0.5;
+      g += exp(-dot(q - vec2(0.5, -0.58), q - vec2(0.5, -0.58)) * 12.0) * 0.18 * vec3(1.0, 0.75, 0.45);
+      c = mix(c, g, smoothstep(1.0, 0.985, r));
+    }
+    color = vec4(c, 1.0);
+  }`;
+
 // Particles gather into target, burst, and regroup. Optional: target2 (layout [2, 4, 2]) with morph = 1
 // makes them regroup into a second shape; festive = 1 colours them like lights on a tree until they regroup.
 const PARTICLE_VS = `#version 300 es

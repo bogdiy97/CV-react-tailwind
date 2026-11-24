@@ -205,18 +205,98 @@ function sceneNight(local, duration, out) {
   snowPass(T.a, out, local, 0.85);
 }
 
+const GLOBE = { x: 540, y: 960, r: 400 };
+const HEARTH = { base: [0.05, 0.018, 0.006], glow: [0.5, 0.2, 0.05] };
+
+// The little world inside the snow globe: the bottle on a snow mound between two small firs.
+function drawGlobeWorld(local) {
+  const { x, y, r } = GLOBE;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.clip();
+  const air = ctx.createRadialGradient(x, y - 60, 40, x, y, r);
+  air.addColorStop(0, 'rgba(255,214,150,.30)');
+  air.addColorStop(1, 'rgba(120,60,20,.10)');
+  ctx.fillStyle = air;
+  ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
+  fir(x - 205, y + 260, 250, '#17402b', 'rgba(235,242,250,.9)');
+  fir(x + 215, y + 270, 200, '#17402b', 'rgba(235,242,250,.9)');
+  bottle(img.gutui, x, y + 262, 610, { reflection: 0, sweep: progress(local, 1.6, 1.2) || -1 });
+  const mound = ctx.createLinearGradient(0, y + 200, 0, y + r);
+  mound.addColorStop(0, '#f6f9fc');
+  mound.addColorStop(1, '#b7c6d8');
+  ctx.fillStyle = mound;
+  ctx.beginPath();
+  ctx.moveTo(x - r, y + 300);
+  ctx.bezierCurveTo(x - 200, y + 200, x - 80, y + 262, x, y + 250);
+  ctx.bezierCurveTo(x + 110, y + 236, x + 230, y + 200, x + r, y + 290);
+  ctx.lineTo(x + r, y + r);
+  ctx.lineTo(x - r, y + r);
+  ctx.fill();
+  ctx.restore();
+}
+
+// The pedestal of the globe, with the Fior plaque.
+function drawGlobeBase() {
+  const { x, y, r } = GLOBE;
+  const top = y + r * 0.84;
+  const metal = ctx.createLinearGradient(x - 330, 0, x + 330, 0);
+  metal.addColorStop(0, '#5a3d14');
+  metal.addColorStop(0.3, '#e9cf8f');
+  metal.addColorStop(0.55, '#b98f43');
+  metal.addColorStop(0.8, '#f1dca4');
+  metal.addColorStop(1, '#5a3d14');
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.6)';
+  ctx.shadowBlur = 50;
+  ctx.shadowOffsetY = 24;
+  ctx.fillStyle = '#3a0c12';
+  ctx.beginPath();
+  ctx.moveTo(x - 255, top + 26);
+  ctx.lineTo(x + 255, top + 26);
+  ctx.lineTo(x + 318, top + 196);
+  ctx.lineTo(x - 318, top + 196);
+  ctx.fill();
+  ctx.restore();
+  const velvet = ctx.createLinearGradient(x - 320, 0, x + 320, 0);
+  velvet.addColorStop(0, '#2a060b');
+  velvet.addColorStop(0.5, '#7a1522');
+  velvet.addColorStop(1, '#2a060b');
+  ctx.fillStyle = velvet;
+  ctx.beginPath();
+  ctx.moveTo(x - 255, top + 26);
+  ctx.lineTo(x + 255, top + 26);
+  ctx.lineTo(x + 318, top + 196);
+  ctx.lineTo(x - 318, top + 196);
+  ctx.fill();
+  ctx.fillStyle = metal;
+  ctx.beginPath();
+  ctx.ellipse(x, top + 22, 268, 34, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(x - 322, top + 182, 644, 26);
+  ctx.fillRect(x - 120, top + 84, 240, 74);
+  ctx.fillStyle = '#2a060b';
+  ctx.fillRect(x - 114, top + 90, 228, 62);
+  logo(x, top + 121, 150, { glow: 0.2 });
+}
+
 function sceneInside(local, duration, out) {
-  const rise = easeOut(progress(local, 0, 1.0));
-  litStage(local, out, {
-    ...STAGES.gutui, lightY: 1000, floorY: 1540, caustics: easeOut(progress(local, 0.4, 1.5)),
-    drawBottles: () => bottle(img.gutui, 540, 1540 + (1 - rise) * 120, 1040, { reflection: 0.3, sweep: progress(local, 1.8, 1.3) || -1 }),
-    drawText: () => {
-      anamorphicFlare(1000, 0.6 + 0.4 * Math.sin(local * 1.7));
-      goldDust(local, 140, 9, { speed: 25, alpha: 0.8 });
-      reveal('Înăuntru,', 540, 320, local, 0.6, { size: 120 });
-      reveal('un fior.', 540, 450, local, 0.9, { size: 120, italic: true, color: COLORS.goldLight });
-    },
+  const settle = easeOut(progress(local, 0, 3.2));
+  gpu.pass('bokeh', { target: T.a, uniforms: { time: local, aspect: ASPECT, density: 0.3, baseColor: HEARTH.base, glowColor: HEARTH.glow.map((v) => v * (0.9 + 0.1 * Math.sin(local * 6))) } });
+  drawInto(layer, () => drawGlobeWorld(local));
+  gpu.pass('globe', {
+    target: T.b,
+    uniforms: { time: local, aspect: ASPECT, center: uvPoint(GLOBE.x, GLOBE.y), radius: GLOBE.r / H, shake: 1 - settle },
+    textures: { base: T.a, inner: layerTexture() },
   });
+  drawInto(textLayer, () => {
+    drawGlobeBase();
+    goldDust(local, 90, 9, { speed: 20, alpha: 0.7 });
+    reveal('Înăuntru,', 540, 300, local, 0.7, { size: 120 });
+    reveal('un fior.', 540, 430, local, 1.0, { size: 120, italic: true, color: COLORS.goldLight });
+  });
+  gpu.pass('compose', { target: out, textures: { base: T.b, overlay: textTexture() } });
 }
 
 const TREE_LIGHT = { time: 0, center: [540, 1000], rise: [TREE.bottom, TREE.top, TREE.halfWidth], festive: 1 };
