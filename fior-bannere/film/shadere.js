@@ -227,26 +227,27 @@ SHADERS.grade = `uniform sampler2D source; uniform float sharpen; uniform float 
     color = vec4(max(c, 0.0), 1.0);
   }`;
 
-// Falling snow in five depth layers (near flakes are bigger, softer and faster), added on top of the source.
+// Falling snow in six depth layers, added on top of the source: a few big, soft, fast flakes close to the
+// lens and many small sharp ones far away.
 SHADERS.snow = `uniform sampler2D source; uniform float aspect; uniform float amount; uniform float wind;
   void main() {
     vec2 p = vec2(uv.x * aspect, uv.y);
     float acc = 0.0;
-    for (int layer = 0; layer < 5; layer++) {
-      float depth = float(layer) / 4.0;
-      float scale = mix(5.0, 24.0, depth);
-      float fall = mix(0.5, 0.16, depth);
-      vec2 g = p * scale + vec2(wind * time * mix(0.5, 0.2, depth) + depth * 7.3, time * fall * scale * 0.2 + depth * 3.1);
+    for (int layer = 0; layer < 6; layer++) {
+      float depth = float(layer) / 5.0;
+      float scale = mix(3.2, 26.0, depth * depth * 0.6 + depth * 0.4);
+      float fall = mix(0.34, 0.07, depth);
+      vec2 g = p * scale + vec2(wind * time * mix(0.6, 0.15, depth) * scale * 0.2 + depth * 7.3, time * fall * scale + depth * 3.1);
       vec2 id = floor(g);
       vec2 f = fract(g) - 0.5;
       float h = hash(id + depth * 91.0);
-      if (h > 0.55) continue;
-      vec2 o = (vec2(hash(id + 1.7), hash(id + 8.3)) - 0.5) * 0.6 + vec2(sin(time * (0.8 + h) + h * 40.0) * 0.1, 0.0);
-      float r = mix(0.09, 0.06, depth) * (0.6 + 0.8 * hash(id + 4.4));
-      float soft = mix(0.75, 0.25, depth);
-      acc += smoothstep(r, r * (1.0 - soft), length(f - o)) * mix(0.55, 0.9, depth);
+      if (h > mix(0.28, 0.6, depth)) continue;
+      vec2 o = (vec2(hash(id + 1.7), hash(id + 8.3)) - 0.5) * 0.55 + vec2(sin(time * (0.7 + h) + h * 40.0) * 0.08, 0.0);
+      float r = mix(0.13, 0.07, depth) * (0.55 + 0.9 * hash(id + 4.4));
+      float soft = mix(0.95, 0.35, depth);
+      acc += smoothstep(r, r * (1.0 - soft), length(f - o)) * mix(0.3, 0.85, depth);
     }
-    color = vec4(texture(source, uv).rgb + acc * amount * vec3(0.92, 0.96, 1.0), 1.0);
+    color = vec4(texture(source, uv).rgb + acc * amount * vec3(0.9, 0.95, 1.0), 1.0);
   }`;
 
 // Particles gather into target, burst, and regroup. Optional: target2 (layout [2, 4, 2]) with morph = 1

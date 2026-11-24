@@ -33,41 +33,109 @@ function drawTree() {
   ctx.fillRect(540 - 36, TREE.bottom - 76, 72, 76);
 }
 
-// Night landscape: sky, moon glow, two rows of firs, snowy ground.
+const CABIN = { x: 540, base: 1420, width: 400, height: 230, roof: 180 };
+const WINDOW = { x: CABIN.x - 50, y: CABIN.base - 175, width: 100, height: 120 };
+
+function fir(x, ground, height, color, snowColor) {
+  const tiers = 4;
+  for (let i = 0; i < tiers; i += 1) {
+    const top = ground - height + (height * i * 0.72) / tiers;
+    const bottom = ground - height + (height * (i + 1.25)) / tiers;
+    const half = height * 0.34 * ((i + 1.4) / (tiers + 0.4));
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x, top);
+    ctx.lineTo(x + half, bottom);
+    ctx.lineTo(x - half, bottom);
+    ctx.fill();
+    ctx.fillStyle = snowColor;
+    ctx.beginPath();
+    ctx.moveTo(x, top);
+    ctx.lineTo(x + half * 0.5, top + (bottom - top) * 0.5);
+    ctx.quadraticCurveTo(x, top + (bottom - top) * 0.34, x - half * 0.5, top + (bottom - top) * 0.5);
+    ctx.fill();
+  }
+}
+
+// Night landscape: starry sky, moon, firs, a snowed-in cabin with a warm window, snowy ground.
 function drawNight(local) {
   const sky = ctx.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0, '#050b16');
-  sky.addColorStop(0.6, '#0e2238');
-  sky.addColorStop(1, '#1b3a57');
+  sky.addColorStop(0, '#040914');
+  sky.addColorStop(0.55, '#0c1e33');
+  sky.addColorStop(1, '#1a3550');
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, H);
-  lightLeak(820, 420, 520, '190,215,255', 0.35);
 
   const rand = seededRandom(77);
-  [[1290, '#0a1a2b', 150, 300], [1420, '#07121f', 190, 380]].forEach(([ground, color, minHeight, maxHeight], row) => {
-    ctx.fillStyle = color;
-    for (let x = -60; x < W + 60; x += 70 + rand() * 80) {
-      const height = minHeight + rand() * (maxHeight - minHeight);
-      const half = height * 0.28;
-      const sway = Math.sin(local * 0.6 + x) * 2 * (row + 1);
-      ctx.beginPath();
-      ctx.moveTo(x + sway, ground - height);
-      ctx.lineTo(x + half, ground + 40);
-      ctx.lineTo(x - half, ground + 40);
-      ctx.fill();
-    }
-    ctx.fillRect(0, ground + 30, W, H - ground);
-  });
-  const snow = ctx.createLinearGradient(0, 1480, 0, H);
-  snow.addColorStop(0, '#c9d9ea');
-  snow.addColorStop(1, '#7f97b3');
+  for (let i = 0; i < 90; i += 1) {
+    const twinkle = 0.35 + 0.65 * Math.abs(Math.sin(local * (0.6 + rand() * 1.4) + rand() * 6));
+    ctx.fillStyle = `rgba(225,235,255,${0.75 * twinkle})`;
+    const size = 1.5 + rand() * 2.5;
+    ctx.fillRect(rand() * W, rand() * 980, size, size);
+  }
+  lightLeak(850, 330, 420, '200,220,255', 0.3);
+  ctx.fillStyle = '#eef3ff';
+  ctx.beginPath();
+  ctx.arc(850, 330, 64, 0, Math.PI * 2);
+  ctx.fill();
+
+  for (let x = -40; x < W + 80; x += 95 + rand() * 60) fir(x, 1330, 260 + rand() * 170, '#0b1b2c', 'rgba(150,175,205,.35)');
+  ctx.fillStyle = '#0b1b2c';
+  ctx.fillRect(0, 1320, W, 200);
+
+  // cabin
+  const { x, base, width, height, roof } = CABIN;
+  ctx.fillStyle = '#0a1420';
+  ctx.fillRect(x - width / 2, base - height, width, height);
+  ctx.fillRect(x + width * 0.24, base - height - roof * 0.9, 46, roof * 0.7);
+  ctx.beginPath();
+  ctx.moveTo(x - width / 2 - 36, base - height + 6);
+  ctx.lineTo(x, base - height - roof);
+  ctx.lineTo(x + width / 2 + 36, base - height + 6);
+  ctx.fill();
+  ctx.fillStyle = '#c4d4e6';
+  ctx.beginPath();
+  ctx.moveTo(x - width / 2 - 44, base - height + 10);
+  ctx.lineTo(x, base - height - roof - 12);
+  ctx.lineTo(x + width / 2 + 44, base - height + 10);
+  ctx.lineTo(x + width / 2 + 22, base - height + 14);
+  ctx.quadraticCurveTo(x, base - height - roof + 40, x - width / 2 - 22, base - height + 14);
+  ctx.fill();
+  ctx.fillRect(x + width * 0.24 - 6, base - height - roof * 0.9 - 12, 58, 16);
+
+  // the warm window, flickering like candle light
+  const flicker = 0.9 + 0.1 * Math.sin(local * 7) * Math.sin(local * 2.3);
+  const glass = ctx.createLinearGradient(0, WINDOW.y, 0, WINDOW.y + WINDOW.height);
+  glass.addColorStop(0, '#ffe2a0');
+  glass.addColorStop(1, '#ff9f3d');
+  ctx.fillStyle = glass;
+  ctx.fillRect(WINDOW.x, WINDOW.y, WINDOW.width, WINDOW.height);
+  ctx.fillStyle = '#0a1420';
+  ctx.fillRect(WINDOW.x + WINDOW.width / 2 - 4, WINDOW.y, 8, WINDOW.height);
+  ctx.fillRect(WINDOW.x, WINDOW.y + WINDOW.height / 2 - 4, WINDOW.width, 8);
+  lightLeak(x, WINDOW.y + WINDOW.height / 2, 330, '255,170,80', 0.6 * flicker);
+
+  const snow = ctx.createLinearGradient(0, 1400, 0, H);
+  snow.addColorStop(0, '#b9cbdf');
+  snow.addColorStop(1, '#6f89a8');
   ctx.fillStyle = snow;
   ctx.beginPath();
-  ctx.moveTo(0, 1560);
-  ctx.bezierCurveTo(300, 1470, 700, 1600, W, 1500);
+  ctx.moveTo(0, 1470);
+  ctx.bezierCurveTo(260, 1380, 420, 1430, 540, 1418);
+  ctx.bezierCurveTo(700, 1404, 860, 1470, W, 1420);
   ctx.lineTo(W, H);
   ctx.lineTo(0, H);
   ctx.fill();
+  // light from the window on the snow
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const pool = ctx.createRadialGradient(x, base + 70, 0, x, base + 70, 300);
+  pool.addColorStop(0, `rgba(255,170,80,${0.4 * flicker})`);
+  pool.addColorStop(1, 'rgba(255,170,80,0)');
+  ctx.fillStyle = pool;
+  ctx.scale(1, 0.4);
+  ctx.fillRect(0, (base - 160) / 0.4, W, 520 / 0.4);
+  ctx.restore();
 }
 
 const snowPass = (source, out, local, amount = 1) => gpu.pass('snow', {
@@ -78,11 +146,11 @@ const snowPass = (source, out, local, amount = 1) => gpu.pass('snow', {
 function sceneNight(local, duration, out) {
   drawInto(layer, () => {
     drawNight(local);
-    reveal('Afară', 540, 520, local, 0.7, { size: 170, shadow: 30 });
-    reveal('ninge.', 540, 690, local, 1.1, { size: 170, italic: true, color: '#dfeaff', shadow: 30 });
+    reveal('Afară', 540, 560, local, 0.7, { size: 170, shadow: 30 });
+    reveal('ninge.', 540, 730, local, 1.1, { size: 170, italic: true, color: '#dfeaff', shadow: 30 });
   });
   gpu.pass('image', { target: T.a, textures: { source: layerTexture() } });
-  snowPass(T.a, out, local, 1.1);
+  snowPass(T.a, out, local, 0.85);
 }
 
 function sceneInside(local, duration, out) {
@@ -185,8 +253,8 @@ function sceneFinale(local, duration, out) {
 
 // ---------- timeline ----------
 const SCENES = [
-  { start: 0, end: 4.8, draw: sceneNight },
-  { start: 4.8, end: 9.6, draw: sceneInside, transition: 'burn' },
+  { start: 0, end: 4.8, draw: sceneNight, zoomCenter: uvPoint(CABIN.x, WINDOW.y + WINDOW.height / 2) },
+  { start: 4.8, end: 9.6, draw: sceneInside, transition: 'zoom' },
   { start: 9.6, end: 14.4, draw: sceneTree, transition: 'burn' },
   { start: 14.4, end: 19.2, draw: sceneGifts },
   { start: 19.2, end: 24, draw: sceneRange, transition: 'burn' },
