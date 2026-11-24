@@ -6,7 +6,7 @@ window.VIDEO_DURATION = VIDEO_DURATION;
 const BEAT = 0.5;
 const FPS = 30;
 
-const LOOK = { sharpen: 0.6, exposure: 0.96, contrast: 1.08, saturation: 1.05, warmth: 0.6, leak: 0.5 };
+const LOOK = { sharpen: 0.75, exposure: 0.96, contrast: 1.08, saturation: 1.05, warmth: 0.6, leak: 0.5, lift: 0.8 };
 const LOGO_WIDTH = 720;
 const LOGO_RECT = { x: 540 - LOGO_WIDTH / 2, y: 860 - (LOGO_WIDTH * 347) / 635 / 2, width: LOGO_WIDTH, height: (LOGO_WIDTH * 347) / 635 };
 const reliefCanvas = makeCanvas();

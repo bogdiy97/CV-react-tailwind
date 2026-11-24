@@ -216,14 +216,21 @@ SHADERS.mix = `uniform sampler2D srcA; uniform sampler2D srcB; uniform float amo
 // Film look for real footage: sharpen (it is upscaled), exposure, contrast, saturation, warm highlights,
 // and light leaks (leak 0..1): warm blobs drifting across the frame, blended like light on film.
 SHADERS.grade = `uniform sampler2D source; uniform float sharpen; uniform float exposure; uniform float contrast;
-  uniform float saturation; uniform float warmth; uniform float leak;
+  uniform float saturation; uniform float warmth; uniform float leak; uniform float lift;
+  vec3 ring(vec2 px) {
+    return (texture(source, uv + vec2(px.x, 0.0)).rgb + texture(source, uv - vec2(px.x, 0.0)).rgb
+      + texture(source, uv + vec2(0.0, px.y)).rgb + texture(source, uv - vec2(0.0, px.y)).rgb
+      + texture(source, uv + px * 0.7).rgb + texture(source, uv - px * 0.7).rgb
+      + texture(source, uv + vec2(px.x, -px.y) * 0.7).rgb + texture(source, uv + vec2(-px.x, px.y) * 0.7).rgb) * 0.125;
+  }
   void main() {
     vec2 px = 1.0 / resolution;
     vec3 c = texture(source, uv).rgb;
-    vec3 around = (texture(source, uv + vec2(px.x, 0.0)).rgb + texture(source, uv - vec2(px.x, 0.0)).rgb
-      + texture(source, uv + vec2(0.0, px.y)).rgb + texture(source, uv - vec2(0.0, px.y)).rgb) * 0.25;
-    c = (c + (c - around) * sharpen) * exposure;
+    // two unsharp masks: fine detail (the footage is upscaled) and a wide one for local contrast
+    c += (c - ring(px * 1.6)) * sharpen + (c - ring(px * 7.0)) * sharpen * 0.45;
+    c *= exposure;
     float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+    c += lift * (1.0 - smoothstep(0.0, 0.45, l)) * vec3(0.09, 0.075, 0.07); // open the shadows (her face under the hat)
     c = mix(vec3(l), c, saturation);
     c = (c - 0.5) * contrast + 0.5;
     c += warmth * (vec3(0.06, 0.02, -0.05) * smoothstep(0.2, 0.9, l) + vec3(-0.02, 0.0, 0.03) * (1.0 - smoothstep(0.0, 0.4, l)));

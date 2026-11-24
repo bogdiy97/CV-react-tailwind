@@ -41,6 +41,7 @@ function drawClip(clip, position, { fx = 0.5, fy = 0.5, zoom = 1, x = 0, y = 0, 
   const sw = (sh * w) / h;
   const sx = Math.min(first.width - sw, Math.max(0, fx * first.width - sw / 2));
   const sy = Math.min(first.height - sh, Math.max(0, fy * first.height - sh / 2));
+  ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(first, sx, sy, sw, sh, x, y, w, h);
   const blend = position - Math.floor(position);
   if (blend > 0.02) {
