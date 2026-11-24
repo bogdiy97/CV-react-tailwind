@@ -1,0 +1,111 @@
+/* Carousel slides (1080×1350) and reel scenes (1080×1920), built by slides.js.
+   Load after fior.css. Sizes scale with --banner-h, so one layout serves both formats. */
+
+.slide{
+  --banner-h:1350px;
+  --safe-top:60px;
+  --safe-bottom:110px;
+  --product-k:.5;
+  --product-h:calc(var(--banner-h) * var(--product-k));
+  --title-size:88px;
+  --fs-text:32px;
+  --fs-eyebrow:20px;
+  --fs-legal:18px;
+  --panel:rgba(255,255,255,.62);
+  display:flex;flex-direction:column;padding:var(--safe-top) var(--pad) 0;
+}
+.banner--dark.slide{--panel:rgba(8,6,10,.34)}
+.slide > *{position:relative;z-index:1}
+.slide > .scene,.slide > .slide__photo{position:absolute;z-index:0}
+.slide > .slide__products,.slide > .legal{position:absolute;z-index:1}
+
+.scene{inset:0}
+.scene > *{position:absolute}
+.scene .snow,.scene .bokeh{inset:0}
+.slide__photo{top:0;left:0;width:100%;height:calc(var(--banner-h) * .6);object-fit:cover;-webkit-mask-image:linear-gradient(#000 58%,transparent);mask-image:linear-gradient(#000 58%,transparent)}
+
+.slide__top{display:flex;justify-content:space-between;align-items:center;height:96px}
+.slide__logo{width:170px}
+.slide__count{font:600 18px/1 var(--font-sans);letter-spacing:.2em;opacity:.75}
+
+.slide__body{width:var(--body-w,560px);margin-top:64px}
+.slide__body > * + *{margin-top:24px}
+.slide .title{font-size:var(--title-size)}
+.slide .text{--text-w:100%}
+.slide__swipe{font:700 18px/1 var(--font-sans);letter-spacing:.3em;text-transform:uppercase;color:var(--accent)}
+.slide__swipe span{display:inline-block;margin-left:10px;letter-spacing:0}
+
+.slide__products{right:var(--pad);bottom:var(--safe-bottom);display:flex;align-items:flex-end;gap:28px}
+.slide .product{position:relative;bottom:0}
+.slide .product img{height:calc(var(--product-h) * var(--scale))}
+
+/* --- slide types --- */
+.slide--cover{--title-size:96px;--product-k:.52}
+.slide--photo .slide__body{width:auto;margin-top:auto;margin-bottom:150px}
+.slide--photo .scene > *{display:none}
+.slide--idea{--product-k:.56;--title-size:76px;--body-w:580px}
+.slide--recipe{--product-k:.5;--title-size:76px;--body-w:640px}
+.slide--recipe .slide__body{margin-top:44px}
+.slide--outro{--title-size:80px}
+.slide--outro .scene__sea,.slide--outro .scene__sand{display:none}
+.slide--lineup{--product-k:.42}
+.slide--lineup .slide__body{width:auto}
+.slide--lineup .slide__products{left:0;right:0;justify-content:center}
+
+.recipe{padding:34px 38px;border-radius:20px;background:var(--panel);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.recipe__heading{font:700 18px/1 var(--font-sans);letter-spacing:.28em;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
+.recipe ul + .recipe__heading{margin-top:30px}
+.recipe__ingredients,.recipe__steps{list-style:none}
+.recipe__ingredients{font:600 30px/1.3 var(--font-sans)}
+.recipe__ingredients li{position:relative;padding-left:30px}
+.recipe__ingredients li + li{margin-top:8px}
+.recipe__ingredients li::before{content:"";position:absolute;left:2px;top:.5em;width:11px;height:11px;background:var(--accent);transform:rotate(45deg)}
+.recipe__steps{counter-reset:step;font:400 28px/1.35 var(--font-sans)}
+.recipe__steps li{position:relative;padding-left:52px;counter-increment:step}
+.recipe__steps li + li{margin-top:14px}
+.recipe__steps li::before{content:counter(step);position:absolute;left:0;top:1px;width:35px;height:35px;border:1.5px solid var(--accent);border-radius:50%;font:700 17px/33px var(--font-sans);text-align:center;color:var(--accent)}
+
+.slide--outro .slide__body{width:auto;margin:auto 0;padding-bottom:240px;text-align:center}
+.slide--outro .text{max-width:720px;margin-left:auto;margin-right:auto}
+.slide__brand{display:block;width:340px;margin:0 auto}
+.slide__actions{display:flex;justify-content:center;gap:56px;font:700 18px/1 var(--font-sans);letter-spacing:.24em;text-transform:uppercase;color:var(--accent)}
+.slide__actions span{display:flex;align-items:center;gap:14px}
+.slide__actions svg{width:34px;height:34px}
+
+/* --- themes --- */
+.theme-job{--accent:#f3b56a}
+.theme-job .scene{background:linear-gradient(180deg,#1d1f36 0%,#3b2f50 42%,#8a4f5c 74%,#d98a5e 100%)}
+.theme-job .legal{text-shadow:0 1px 4px rgba(0,0,0,.85)}
+.theme-job .scene::after{content:"";position:absolute;left:0;right:0;bottom:0;height:90px;background:linear-gradient(transparent,#17182b)}
+.scene__skyline{left:0;bottom:0;width:100%;height:260px;opacity:.85}
+
+.theme-plaja{color:#173b44;--accent:#d9572b}
+.theme-plaja .scene{background:linear-gradient(180deg,#ffe6bd 0%,#fcc99c 50%,#f7ad86 60%)}
+.scene__sun{right:110px;top:28%;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,#fff7da 0,#ffe3a3 42%,rgba(255,214,150,0) 70%)}
+.scene__sea{left:0;right:0;top:58%;height:16%;background:repeating-linear-gradient(180deg,transparent 0 16px,rgba(255,255,255,.22) 16px 18px),linear-gradient(#63c0cb,#2c8ca2)}
+.scene__sand{left:0;right:0;top:74%;bottom:0;background:linear-gradient(#f6e4c4,#eccd9f)}
+
+.theme-ski{--accent:#ffd08a}
+.theme-ski .scene{background:linear-gradient(180deg,#16233f 0%,#2e4672 46%,#c99aa6 80%,#f0c2a8 100%)}
+.scene__mountains{left:0;width:100%;height:900px;bottom:calc(var(--safe-bottom) - 410px)}
+
+.theme-brad{--accent:var(--gold-light)}
+.theme-brad .scene{background:radial-gradient(ellipse at 70% 70%,#1f5a40 0,var(--pine) 50%,var(--pine-deep) 100%)}
+.scene__tree{right:-70px;bottom:calc(var(--safe-bottom) - 10px);height:70%;color:var(--gold-light);opacity:.28}
+
+.theme-retete{--accent:var(--quince-deep)}
+.theme-retete .scene{background:radial-gradient(circle at 70% 40%,#fffaf2 0,#f6ecdd 55%,#ead9c0 100%)}
+.scene__frame{inset:26px;border:1.5px solid rgba(201,165,90,.7);border-radius:6px;outline:1px solid rgba(201,165,90,.4);outline-offset:-10px}
+
+/* --- reel (1080×1920): keep content inside Instagram's safe zone --- */
+.slide--reel{--banner-h:1920px;--safe-top:150px;--safe-bottom:400px}
+.slide--reel .slide__count,.slide--reel .slide__swipe{display:none}
+.slide--reel .slide__body{width:auto;margin-top:90px}
+.slide--reel .slide__products{left:0;right:0;justify-content:center}
+.slide--reel.slide--cover{--product-k:.42}
+.slide--reel.slide--idea{--product-k:.42}
+.slide--reel.slide--recipe{--product-k:.25}
+.slide--reel.slide--lineup{--product-k:.34}
+.slide--reel.slide--photo .slide__body{margin-top:auto;margin-bottom:430px}
+.slide--reel .legal{bottom:330px}
+.slide--reel .scene__skyline{height:440px}

@@ -1,8 +1,12 @@
-# Fior – bannere de prezentare
+# Fior – materiale pentru Instagram
 
-10 postări pătrate pentru Instagram (1080×1080, ca postările Fior), doar de prezentare: fără prețuri, oferte sau îndemnuri de cumpărare.
+Doar prezentare de produs: fără prețuri, oferte sau îndemnuri de cumpărare.
 
-## Crăciun
+- **10 postări** pătrate (1080×1080), în `png/`
+- **5 carusele** cu idei și rețete (1080×1350, 26 de slide-uri), în `png/carusele/`
+- **5 Reels** verticale (1080×1920, MP4, fără sunet), în `video/`
+
+## Postări
 
 | Fișier | Produs | Mesaj |
 | --- | --- | --- |
@@ -11,33 +15,57 @@
 | `png/craciun-03-rosul-sarbatorilor.png` | Berry Sangria | Roșul sărbătorilor. |
 | `png/craciun-04-singur-sau-impreuna.png` | Toată gama | Singur sau împreună. |
 | `png/craciun-05-craciun-fericit.png` | Lichior de gutui | Crăciun fericit! |
-
-## Generale
-
-| Fișier | Produs | Mesaj |
-| --- | --- | --- |
 | `png/general-01-lichior-de-gutui.png` | Lichior de gutui (fotografia oficială) | Gust tandru și delicat, așa cum ești și tu. |
 | `png/general-02-berry-sangria.png` | Berry Sangria | Zmeură, mure, portocală și scorțișoară |
 | `png/general-03-elderberry-hugo.png` | Elderberry Hugo | Flori de soc, lămâie și mentă |
 | `png/general-04-hard-lemonade.png` | Hard Lemonade (4 arome) | Patru arome răcoritoare. Un singur fior. |
 | `png/general-05-fiecare-detaliu-conteaza.png` | Lichior de gutui | Din gutui românești. |
 
+## Carusele și Reels
+
+Fiecare carusel are și o variantă Reel cu același conținut, animată.
+
+| Carusel | Reel | Conținut |
+| --- | --- | --- |
+| `png/carusele/dupa-job/` | `video/dupa-job.mp4` | Seara după job: Hard Lemonade la gheață, Gutui & tonic, Hugo cu mentă |
+| `png/carusele/pe-plaja/` | `video/pe-plaja.mp4` | Pe plajă: Hard Lemonade, Sangria slush, Hugo spritz |
+| `png/carusele/la-ski/` | `video/la-ski.mp4` | Après-ski: ceai fierbinte cu gutui, Berry Sangria caldă, lichior de gutui simplu |
+| `png/carusele/langa-brad/` | `video/langa-brad.mp4` | Lângă brad: Fior de Crăciun, punch de sărbători, înghețată cu gutui |
+| `png/carusele/retete/` | `video/retete.mp4` | 4 rețete: Gutui sour, Sangria royale, Hugo smash, Ginger lemonade |
+
+Reels-urile nu au sunet: muzica se adaugă direct în Instagram, din biblioteca lor (așa nu sunt probleme de drepturi de autor).
+
 ## Sursa materialelor
 
-- **Sticle și logo:** fotografiile oficiale de pe fiordrinks.ro. Sticlele sunt decupate de pe fundalul alb cu `cutout.py`, fără nicio modificare a sticlei. Logo-ul (`imagini/logo-fior.png`) e extras din `logo-round.png`, iar variantele `-auriu` și `-crem` sunt aceeași formă recolorată pentru fundaluri închise.
-- **Texte:** ingredientele și afirmațiile despre produse vin de pe etichete și de pe site (de exemplu „nefiltrat, fără arome și coloranți adăugați”).
+- **Sticle, fotografii și logo:** de pe fiordrinks.ro. Sticlele sunt decupate de pe fundalul alb cu `cutout.py`, fără nicio modificare a sticlei. Logo-ul (`imagini/logo-fior.png`) e extras din `logo-round.png`, iar variantele `-auriu` și `-crem` sunt aceeași formă recolorată pentru fundaluri închise.
+- **Texte:** ingredientele și afirmațiile despre produse vin de pe etichete și de pe site. Rețetele sunt propuneri noi, cu produsele Fior.
 - **Fonturi:** Playfair și Open Sans, aceleași ca pe fiordrinks.ro (licența SIL OFL, vezi `fonts/`).
+
+## Structura
+
+| Fișier | Rol |
+| --- | --- |
+| `fior.css` | fonturi, culori (blocul `:root`) și componente comune |
+| `fior.js` | desenele aurii (sprite SVG), zăpada, umbrele |
+| `bannere.html` | cele 10 postări |
+| `continut.js` | **toate textele și rețetele** din carusele și Reels |
+| `slides.js`, `slides.css` | șabloanele de slide (copertă, idee, rețetă, final) și scenele pe teme |
+| `carusele.html` | caruselele |
+| `reel.html`, `reel.js` | Reel-urile (`reel.html?c=dupa-job` etc.) |
 
 ## Cum modifici
 
-- **Texte:** în `bannere.html`, câte o `<section class="banner">` pentru fiecare postare.
-- **Culori, fonturi, dimensiuni:** blocul `:root` din `bannere.html`.
-- **O sticlă nouă:** `python3 fior-bannere/cutout.py poza.jpg fior-bannere/imagini/nume.png`, apoi o folosești într-un `<figure class="product">`.
+- **Texte și rețete din carusele și Reels:** în `continut.js`. Se schimbă automat în ambele formate.
+- **Texte din postări:** în `bannere.html`, câte o `<section class="banner">` pentru fiecare.
+- **Culori și fonturi:** blocul `:root` din `fior.css`.
+- **O sticlă nouă:** `python3 fior-bannere/cutout.py poza.jpg fior-bannere/imagini/nume.png`, apoi numele ei în `products` din `continut.js`.
 
-## Export PNG
+## Export
 
 ```bash
-node fior-bannere/render.cjs
+node fior-bannere/render.cjs                 # postările -> png/
+node fior-bannere/render.cjs carusele.html   # caruselele -> png/carusele/
+node fior-bannere/render-reels.cjs           # Reels -> video/ (sau doar unul: ... render-reels.cjs la-ski)
 ```
 
-Ai nevoie de Playwright cu Chromium. Imaginile se generează în `png/`.
+Ai nevoie de Playwright cu Chromium, iar pentru Reels și de ffmpeg.

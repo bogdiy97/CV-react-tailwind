@@ -1,0 +1,107 @@
+/* ============================================================
+   Brand fonts (same as fiordrinks.ro): Playfair + Open Sans, OFL.
+   latin-ext faces come last so they serve ă â î ș ț.
+   ============================================================ */
+@font-face{font-family:"Playfair";font-weight:400;src:url(fonts/playfair-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Playfair";font-weight:400;font-style:italic;src:url(fonts/playfair-latin-400-italic.woff2) format("woff2")}
+@font-face{font-family:"Playfair";font-weight:600;src:url(fonts/playfair-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Open Sans";font-weight:400;src:url(fonts/open-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Open Sans";font-weight:600;src:url(fonts/open-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Open Sans";font-weight:700;src:url(fonts/open-sans-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Playfair";font-weight:400;src:url(fonts/playfair-latin-ext-400-normal.woff2) format("woff2");unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:"Playfair";font-weight:400;font-style:italic;src:url(fonts/playfair-latin-ext-400-italic.woff2) format("woff2");unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:"Playfair";font-weight:600;src:url(fonts/playfair-latin-ext-600-normal.woff2) format("woff2");unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:"Open Sans";font-weight:400;src:url(fonts/open-sans-latin-ext-400-normal.woff2) format("woff2");unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:"Open Sans";font-weight:600;src:url(fonts/open-sans-latin-ext-600-normal.woff2) format("woff2");unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:"Open Sans";font-weight:700;src:url(fonts/open-sans-latin-ext-700-normal.woff2) format("woff2");unicode-range:U+0100-024F,U+1E00-1EFF}
+
+/* ============================================================
+   Design tokens (colours taken from the Fior labels)
+   ============================================================ */
+:root{
+  --gold:#c9a55a;
+  --gold-light:#ecd59b;
+  --cream:#f8f0e3;
+  --ink:#2a1a12;
+
+  --quince:#e06a2b;
+  --quince-deep:#a4400f;
+  --peach:#eec583;
+  --wine:#6d1424;
+  --wine-deep:#2a070e;
+  --raspberry:#a3203a;
+  --rose:#f2c5bb;
+  --pine:#123526;
+  --pine-deep:#071a11;
+  --night:#0a1522;
+  --elder:#e6ebc0;
+  --elder-green:#2f6b31;
+  --lemon-dark:#9a7400;
+
+  --font-serif:"Playfair",Georgia,serif;
+  --font-sans:"Open Sans",system-ui,sans-serif;
+
+  --pad:80px;
+  --fs-title:100px;
+  --fs-text:29px;
+  --fs-eyebrow:19px;
+  --fs-legal:15px;
+}
+
+/* ============================================================
+   Shared components
+   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#5f5f5f;display:grid;gap:48px;justify-content:center;padding:48px}
+
+.banner{position:relative;width:var(--banner-w,1080px);height:var(--banner-h,1080px);overflow:hidden;color:var(--ink);font-family:var(--font-sans);--accent:var(--quince-deep)}
+.banner > *{position:absolute}
+.banner--dark{color:var(--cream);--accent:var(--gold-light)}
+
+.logo{top:60px;left:var(--pad);width:var(--logo-w,190px)}
+
+.copy{left:var(--pad);top:var(--copy-top,330px);width:var(--copy-w,520px)}
+.copy > * + *{margin-top:26px}
+.copy--center{left:0;right:0;width:auto;text-align:center}
+.eyebrow{font:700 var(--fs-eyebrow)/1.2 var(--font-sans);letter-spacing:.3em;text-transform:uppercase;color:var(--accent)}
+.title{font:400 var(--fs-title)/1.04 var(--font-serif);letter-spacing:-.01em}
+.title em{color:var(--accent)}
+.text{font:400 var(--fs-text)/1.45 var(--font-sans);max-width:var(--text-w,460px)}
+.copy--center .text{margin-left:auto;margin-right:auto}
+
+.pills{display:flex;gap:12px}
+.pill{padding:11px 20px;border:1.5px solid currentColor;border-radius:999px;font:600 16px/1 var(--font-sans);letter-spacing:.14em;text-transform:uppercase}
+.facts{list-style:none;font:600 26px/1.3 var(--font-sans)}
+.facts li{position:relative;padding-left:40px}
+.facts li + li{margin-top:16px}
+.facts li::before{content:"";position:absolute;left:4px;top:.42em;width:13px;height:13px;background:var(--accent);transform:rotate(45deg)}
+
+.legal{left:0;right:0;bottom:26px;text-align:center;font:600 var(--fs-legal)/1 var(--font-sans);letter-spacing:.16em;text-transform:uppercase;opacity:.7}
+
+/* Product cut-out with a contact shadow; position it with left/right + bottom */
+.product{bottom:var(--floor,110px);isolation:isolate;margin:0}
+.product img{display:block;height:var(--h);filter:drop-shadow(0 12px 18px rgba(0,0,0,.25))}
+.product::after{content:"";position:absolute;z-index:-1;left:-30%;right:-30%;bottom:-16px;height:36px;background:radial-gradient(closest-side,rgba(0,0,0,var(--shadow,.5)),transparent)}
+.product figcaption{position:absolute;top:calc(100% + 18px);left:50%;width:180px;margin-left:-90px;text-align:center;font:600 17px/1.3 var(--font-sans);letter-spacing:.04em}
+.product .product__cast{position:absolute;left:0;bottom:0;height:var(--h);z-index:-1;transform-origin:0 100%;transform:skewX(-52deg) scaleY(.34);filter:brightness(0) blur(7px);opacity:.2}
+.lineup{left:0;right:0;bottom:var(--floor,110px);display:flex;justify-content:center;align-items:flex-end;gap:var(--gap,44px)}
+.lineup .product{position:relative;bottom:0}
+
+/* Decoration helpers */
+.deco{left:var(--x);top:var(--y);width:var(--s);color:var(--c,var(--gold));opacity:var(--o,.6);transform:rotate(var(--r,0deg))}
+.deco svg,.hang svg{display:block;width:100%;height:auto}
+.glow{border-radius:50%;background:radial-gradient(circle,var(--glow,rgba(255,196,110,.45)) 0,transparent 66%)}
+.hang{top:0;left:var(--x);width:var(--s,84px);padding-top:var(--len)}
+.hang::before{content:"";position:absolute;top:0;left:50%;height:calc(var(--len) + 10px);border-left:2px solid var(--gold)}
+.snow{inset:0;pointer-events:none}
+.snow svg{display:block;width:100%;height:100%}
+.bokeh{inset:0;pointer-events:none;filter:blur(4px);
+  background:
+    radial-gradient(circle at 14% 22%,rgba(255,214,140,.32) 0 20px,transparent 36px),
+    radial-gradient(circle at 36% 9%,rgba(255,214,140,.22) 0 14px,transparent 28px),
+    radial-gradient(circle at 58% 18%,rgba(255,214,140,.26) 0 26px,transparent 44px),
+    radial-gradient(circle at 82% 10%,rgba(255,214,140,.3) 0 18px,transparent 32px),
+    radial-gradient(circle at 92% 34%,rgba(255,214,140,.2) 0 30px,transparent 50px),
+    radial-gradient(circle at 8% 62%,rgba(255,214,140,.18) 0 24px,transparent 42px),
+    radial-gradient(circle at 46% 44%,rgba(255,214,140,.14) 0 12px,transparent 24px),
+    radial-gradient(circle at 70% 76%,rgba(255,214,140,.16) 0 22px,transparent 38px)}

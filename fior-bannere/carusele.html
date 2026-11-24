@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<title>Fior – carusele cu idei și rețete</title>
+<link rel="stylesheet" href="fior.css">
+<link rel="stylesheet" href="slides.css">
+</head>
+<body>
+<script src="continut.js"></script>
+<script src="slides.js"></script>
+<script>
+  CAROUSELS.forEach((carousel) => {
+    carousel.slides.forEach((slide, index) => document.body.append(slideElement(carousel, slide, index)));
+  });
+</script>
+<script src="fior.js"></script>
+</body>
+</html>
