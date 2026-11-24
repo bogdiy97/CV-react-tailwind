@@ -116,12 +116,13 @@ const dropStep = (local) => {
   const beat = beatIndex(local, BEAT, 7);
   return { beat, cl: local - beat * BEAT, cut: DROP_CUTS[beat - TRIPTYCH.length] };
 };
-const bandFrame = (band, index, local) => band.from + Math.max(0, local - index * BEAT) * FPS;
+const BAND_EVERY = BEAT / 2; // the bands slide in half a beat apart, then hold
+const bandFrame = (band, index, local) => band.from + Math.max(0, local - index * BAND_EVERY) * FPS;
 
 const sceneDrop = {
   clips(local) {
     const { beat, cl, cut } = dropStep(local);
-    if (!cut) return TRIPTYCH.filter((band, i) => beat >= i).map((band, i) => ({ clip: band.clip, position: bandFrame(band, i, local) }));
+    if (!cut) return TRIPTYCH.map((band, i) => ({ clip: band.clip, position: bandFrame(band, i, local) }));
     return cut.clip ? [{ clip: cut.clip, position: cut.from + cl * FPS }] : [];
   },
   draw(local, duration, out) {
@@ -132,21 +133,20 @@ const sceneDrop = {
         ctx.fillStyle = '#060302';
         ctx.fillRect(0, 0, W, H);
         TRIPTYCH.forEach((band, i) => {
-          if (beat < i) return;
-          const slide = i === 0 ? 0 : 1 - easeOut(progress(local, i * BEAT, 0.24));
-          const push = 1.1 - 0.1 * easeOut(progress(local, i * BEAT, 1.5));
+          if (local < i * BAND_EVERY) return;
+          const slide = i === 0 ? 0 : 1 - easeOut(progress(local, i * BAND_EVERY, 0.22));
+          const push = 1.1 - 0.1 * easeOut(progress(local, i * BAND_EVERY, 1.4));
           drawClip(band.clip, bandFrame(band, i, local), { fx: band.fx, fy: band.fy, zoom: push, x: band.side * slide * W, y: i * BAND, w: W, h: BAND - 6 });
         });
       });
-      gpu.pass('grade', { target: T.c, uniforms: { ...LOOK, time: local }, textures: { source: layerTexture() } });
+      gpu.pass('grade', { target: T.c, uniforms: { ...LOOK, exposure: 0.86, leak: 0.2, time: local }, textures: { source: layerTexture() } });
     } else if (cut.clip) {
       drawInto(layer, () => drawClip(cut.clip, cut.from + cl * FPS, { fx: cut.fx, fy: cut.fy, zoom: (cut.zoom || 1) * zoomIn }));
       gpu.pass('grade', { target: T.c, uniforms: { ...LOOK, time: local }, textures: { source: layerTexture() } });
     } else {
       bottleCut(cl, T.c, { ...cut, zoomIn });
     }
-    const center = cut ? [0.5, 0.5] : [0.5, 1 - (beat + 0.5) / 3];
-    gpu.pass('shock', { target: out, uniforms: { age: cl, center, aspect: ASPECT, strength: cut ? 1 : 0.7 }, textures: { source: T.c } });
+    gpu.pass('shock', { target: out, uniforms: { age: cl, center: [0.5, 0.5], aspect: ASPECT, strength: cut || beat === 0 ? 1 : 0.5 }, textures: { source: T.c } });
   },
 };
 
