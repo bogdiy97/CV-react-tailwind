@@ -430,17 +430,86 @@ function sceneGifts(local, duration, out) {
 
 const RING = ['gutui', 'hlZmeura', 'sangria', 'hlMenta', 'hugo', 'hlGhimbir', 'hlSoc'];
 
+// A fir wreath with berries, painted once; the lights and the bow are added when it is drawn.
+const WREATH = { size: 760, radius: 270 };
+const wreathCanvas = makeCanvas(WREATH.size, WREATH.size);
+
+function paintWreath() {
+  const rand = seededRandom(303);
+  const c = WREATH.size / 2;
+  drawInto(wreathCanvas, () => {
+    for (let i = 0; i < 2600; i += 1) {
+      const angle = rand() * Math.PI * 2;
+      const radius = WREATH.radius + (rand() - 0.5) * 120 * (0.4 + 0.6 * rand());
+      const x = c + Math.cos(angle) * radius;
+      const y = c + Math.sin(angle) * radius;
+      const lean = angle + Math.PI / 2 + (rand() - 0.5) * 1.5;
+      const length = 26 + rand() * 34;
+      const shade = 0.35 + 0.65 * rand();
+      ctx.strokeStyle = `rgb(${Math.round(14 + 30 * shade)},${Math.round(52 + 78 * shade)},${Math.round(30 + 34 * shade)})`;
+      ctx.lineWidth = 2 + rand() * 2.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + Math.cos(lean) * length, y + Math.sin(lean) * length);
+      ctx.stroke();
+    }
+    for (let i = 0; i < 9; i += 1) {
+      const angle = (i / 9) * Math.PI * 2 + 0.35;
+      for (let k = 0; k < 3; k += 1) {
+        const x = c + Math.cos(angle) * WREATH.radius + (k - 1) * 20;
+        const y = c + Math.sin(angle) * WREATH.radius + (k === 1 ? -14 : 6);
+        const berry = ctx.createRadialGradient(x - 4, y - 5, 1, x, y, 13);
+        berry.addColorStop(0, '#ff9c9c');
+        berry.addColorStop(0.4, '#c5182b');
+        berry.addColorStop(1, '#4a0710');
+        ctx.fillStyle = berry;
+        ctx.beginPath();
+        ctx.arc(x, y, 13, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  });
+}
+
+function drawWreath(local, cx, cy, appear) {
+  const scale = 0.85 + 0.15 * appear;
+  ctx.save();
+  ctx.globalAlpha *= appear;
+  ctx.translate(cx, cy);
+  ctx.rotate(Math.sin(local * 0.5) * 0.03);
+  ctx.scale(scale, scale);
+  ctx.drawImage(wreathCanvas, -WREATH.size / 2, -WREATH.size / 2);
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 22; i += 1) {
+    const angle = (i / 22) * Math.PI * 2;
+    const x = Math.cos(angle) * (WREATH.radius + (i % 2 ? 18 : -18));
+    const y = Math.sin(angle) * (WREATH.radius + (i % 2 ? 18 : -18));
+    const on = 0.5 + 0.5 * Math.sin(local * 4 + i * 2.4);
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, 22);
+    glow.addColorStop(0, `rgba(255,238,196,${0.95 * on})`);
+    glow.addColorStop(0.3, `rgba(255,200,110,${0.5 * on})`);
+    glow.addColorStop(1, 'rgba(255,190,90,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(x - 22, y - 22, 44, 44);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  drawBow(0, WREATH.radius + 6, 200);
+  ctx.restore();
+}
+
 function sceneRange(local, duration, out) {
   orbitScene(local, duration, T.c, {
     ring: RING,
     ...PINE,
+    drawBehind: () => drawWreath(local, 540, 420, easeOut(progress(local, 0.1, 0.9))),
     drawText: () => {
       goldDust(local, 110, 23, { speed: 30, alpha: 0.7 });
-      reveal('Singur sau', 540, 300, local, 0.5, { size: 120 });
-      reveal('împreună.', 540, 430, local, 0.75, { size: 120, italic: true, color: COLORS.goldLight });
+      reveal('Singur sau', 540, 400, local, 0.6, { size: 84, shadow: 20 });
+      reveal('împreună.', 540, 492, local, 0.85, { size: 84, italic: true, color: COLORS.goldLight, shadow: 20 });
     },
   });
-  snowPass(T.c, out, local, 0.45);
+  snowPass(T.c, out, local, 0.4);
 }
 
 const BURST_AT = 1.2; // seconds into the finale (25.2 s in the film, on a beat)
@@ -502,5 +571,6 @@ window.videoReady = Promise.all([loadAssets(), ...ICON_IDS.map((id) => loadIcon(
   drawInto(logoMask, () => ctx.drawImage(img.logo, LOGO_RECT.x, LOGO_RECT.y, LOGO_RECT.width, LOGO_RECT.height));
   const full = { x: 0, y: 0, width: W, height: H };
   particles = particlesFrom(treeMask, full, 36000, 211, { image: logoMask, rect: full });
+  paintWreath();
   window.renderFrame(0);
 });

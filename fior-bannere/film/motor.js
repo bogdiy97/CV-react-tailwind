@@ -90,13 +90,15 @@ function bottleRow(keys, height, gap) {
   return keys.map((key, i) => ({ key, x: 540 + (i - (keys.length - 1) / 2) * gap, height: height * bottleScale(key) }));
 }
 
-// The bottles in `ring` on a slow carousel, in front of bokeh lights and light rays; `drawText` paints the words.
-function orbitScene(local, duration, out, { ring, drawText, base = [0.02, 0.012, 0.004], glow = [0.28, 0.18, 0.05], ray = [1.0, 0.8, 0.45] }) {
+// The bottles in `ring` on a slow carousel, in front of bokeh lights and light rays; `drawText` paints the words,
+// `drawBehind` (optional) paints behind the bottles and, like them, blocks the rays.
+function orbitScene(local, duration, out, { ring, drawText, drawBehind = null, base = [0.02, 0.012, 0.004], glow = [0.28, 0.18, 0.05], ray = [1.0, 0.8, 0.45] }) {
   gpu.pass('bokeh', { target: T.a, uniforms: { time: local, aspect: ASPECT, density: 0.35, baseColor: base, glowColor: glow } });
 
   const spin = lerp(-Math.PI * 2 * 0.85, 0, easeOut(progress(local, 0, duration - 0.4)));
   const tilt = lerp(0.5, 1.15, easeInOut(progress(local, 0, duration)));
   drawInto(layer, () => {
+    if (drawBehind) drawBehind();
     ring.map((key, i) => {
       const angle = spin + (i * Math.PI * 2) / ring.length;
       const depth = Math.cos(angle);
