@@ -9,8 +9,8 @@ const { chromium } = require('playwright');
 const { captureVideo } = require('../video-capture.cjs');
 
 const FILMS = {
-  1: { page: 'film.html', audio: 'sunet.wav', name: 'fior-film' },
-  2: { page: 'film-2.html', audio: 'sunet-2.wav', name: 'fior-film-2' },
+  1: { page: 'film.html', audio: 'sunet.wav', name: 'fior-film', crf: 18 },
+  2: { page: 'film-2.html', audio: 'sunet-2.wav', name: 'fior-film-2', crf: 23 },
 };
 // Film 2 draws with WebGL and needs the local images on the GPU.
 const BROWSER_ARGS = ['--allow-file-access-from-files', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
@@ -28,7 +28,7 @@ const BROWSER_ARGS = ['--allow-file-access-from-files', '--use-angle=swiftshader
     url: 'file://' + path.join(__dirname, film.page),
     outFile: withSound,
     audioFile: path.join(__dirname, film.audio),
-    crf: 18,
+    crf: film.crf,
   });
   await browser.close();
 
