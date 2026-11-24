@@ -265,12 +265,18 @@ uniform float regroup;
 uniform float fadeOut;
 uniform float morph;
 uniform float festive;
+uniform vec3 rise; // festive: y of the shape's bottom, y of its top, half width (px)
 out float vAlpha;
 out vec3 vColor;
 void main() {
   float a = seed.x * 6.2831 + time * 0.6 * (0.5 + seed.z);
   vec2 cloud = center + vec2(cos(a), sin(a)) * (600.0 + seed.y * 900.0) * vec2(1.0, 1.35);
   float pe = clamp(assemble * 1.4 - seed.w * 0.4, 0.0, 1.0);
+  if (festive > 0.5) {
+    // the tree settles from the bottom up
+    float order = clamp((rise.x - target.y) / (rise.x - rise.y), 0.0, 1.0) * 0.85 + seed.w * 0.15;
+    pe = clamp(assemble * 2.2 - order * 1.2, 0.0, 1.0);
+  }
   pe = pe * pe * (3.0 - 2.0 * pe);
   vec2 v = (cloud - target) * (1.0 - pe);
   float turn = (1.0 - pe) * 1.8;
@@ -291,6 +297,7 @@ void main() {
 
   float lights = festive * (1.0 - back);
   vec3 light = seed.z < 0.14 ? vec3(1.0, 0.22, 0.18) : (seed.z < 0.62 ? vec3(0.3, 0.85, 0.42) : vColor);
+  light *= mix(1.15, 0.55, clamp(abs(target.x - center.x) / max(rise.z, 1.0), 0.0, 1.0)); // rounder: darker edges
   vColor = mix(vColor, light, lights);
   vAlpha *= 1.0 - lights * 0.45 * (0.5 + 0.5 * sin(time * 4.0 + seed.x * 60.0));
 }`;

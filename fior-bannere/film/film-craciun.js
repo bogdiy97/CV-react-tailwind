@@ -14,23 +14,75 @@ const SMALL = { family: SANS, weight: 700, size: 24, spacing: 9, color: COLORS.g
 let particles;
 
 // ---------- drawing ----------
-// The Christmas tree silhouette: four tiers, a trunk. Used as the particle mask.
-function drawTree() {
-  const tiers = 4;
+// The tiers of the Christmas tree: [top y, bottom y, half width at the bottom].
+const TREE_TIERS = [0, 1, 2, 3].map((i) => {
   const height = TREE.bottom - TREE.top - 70;
+  return [TREE.top + (height * i) / 4 * 0.82, TREE.top + (height * (i + 1)) / 4, TREE.halfWidth * (0.42 + (0.58 * (i + 1)) / 4)];
+});
+const treeHalfWidth = (y) => Math.max(0, ...TREE_TIERS.filter(([top, bottom]) => y >= top && y <= bottom)
+  .map(([top, bottom, half]) => (half * (y - top)) / (bottom - top)));
+
+// The tree silhouette (tiers and trunk): the particle mask.
+function drawTree() {
   ctx.fillStyle = '#fff';
-  for (let i = 0; i < tiers; i += 1) {
-    const top = TREE.top + (height * i) / tiers * 0.82;
-    const bottom = TREE.top + (height * (i + 1)) / tiers;
-    const half = TREE.halfWidth * (0.42 + (0.58 * (i + 1)) / tiers);
+  TREE_TIERS.forEach(([top, bottom, half]) => {
     ctx.beginPath();
     ctx.moveTo(540, top);
     ctx.quadraticCurveTo(540 + half * 0.45, bottom - 60, 540 + half, bottom);
     ctx.quadraticCurveTo(540, bottom + 46, 540 - half, bottom);
     ctx.quadraticCurveTo(540 - half * 0.45, bottom - 60, 540, top);
     ctx.fill();
-  }
+  });
   ctx.fillRect(540 - 36, TREE.bottom - 76, 72, 76);
+}
+
+// Decorations on the tree, appearing from `at` seconds: string lights on four swags, baubles, the star.
+const BAUBLES = [[0.2, -0.5, 0], [0.34, 0.45, 1], [0.47, -0.15, 0], [0.56, 0.62, 1], [0.66, -0.62, 1], [0.76, 0.18, 0], [0.87, -0.3, 1], [0.9, 0.66, 0]];
+
+function drawDecorations(local, at, alpha = 1) {
+  const span = TREE.bottom - 76 - TREE.top;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.globalCompositeOperation = 'lighter';
+  [0.3, 0.5, 0.7, 0.88].forEach((level, garland) => {
+    const y0 = TREE.top + span * level - 60;
+    for (let i = 0; i <= 14; i += 1) {
+      const u = i / 14;
+      const y = y0 + 70 * u + 26 * Math.sin(Math.PI * u);
+      const x = 540 + (2 * u - 1) * treeHalfWidth(y) * 0.86 * (garland % 2 ? -1 : 1);
+      const on = progress(local, at + garland * 0.12 + u * 0.3, 0.2) * (0.55 + 0.45 * Math.sin(local * 5 + i * 1.9 + garland));
+      const glow = ctx.createRadialGradient(x, y, 0, x, y, 20);
+      glow.addColorStop(0, `rgba(255,236,190,${on})`);
+      glow.addColorStop(0.25, `rgba(255,200,110,${0.55 * on})`);
+      glow.addColorStop(1, 'rgba(255,190,90,0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(x - 20, y - 20, 40, 40);
+    }
+  });
+  ctx.globalCompositeOperation = 'source-over';
+  BAUBLES.forEach(([level, side, gold], i) => {
+    const pop = easeOut(progress(local, at + 0.35 + i * 0.07, 0.35));
+    if (pop <= 0) return;
+    const y = TREE.top + span * level + 30;
+    const x = 540 + side * treeHalfWidth(y) + Math.sin(local * 1.4 + i) * 3;
+    const r = 26 * pop;
+    const ball = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
+    ball.addColorStop(0, gold ? '#fff3cc' : '#ff8a8a');
+    ball.addColorStop(0.45, gold ? '#d9ab4e' : '#c0202f');
+    ball.addColorStop(1, gold ? '#6b4a16' : '#4a0710');
+    ctx.fillStyle = ball;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = COLORS.gold;
+    ctx.fillRect(x - 5 * pop, y - r - 7 * pop, 10 * pop, 8 * pop);
+  });
+  const star = easeOut(progress(local, at + 0.7, 0.6));
+  ctx.globalCompositeOperation = 'lighter';
+  lightLeak(540, TREE.top - 16, 300 * star, '255,214,140', 0.55 * star * (0.85 + 0.15 * Math.sin(local * 6)));
+  drawIcon('sparkle', 540, TREE.top - 16, 170 * star, { alpha: star, rotation: local * 0.25 });
+  drawIcon('sparkle', 540, TREE.top - 16, 100 * star, { alpha: star, rotation: Math.PI / 4 - local * 0.25 });
+  ctx.restore();
 }
 
 const CABIN = { x: 540, base: 1420, width: 400, height: 230, roof: 180 };
@@ -167,6 +219,8 @@ function sceneInside(local, duration, out) {
   });
 }
 
+const TREE_LIGHT = { time: 0, center: [540, 1000], rise: [TREE.bottom, TREE.top, TREE.halfWidth], festive: 1 };
+
 function sceneTree(local, duration, out) {
   gpu.pass('bokeh', { target: T.a, uniforms: { time: local, aspect: ASPECT, density: 0.2, baseColor: PINE.base, glowColor: PINE.glow } });
   gpu.points('particles', {
@@ -174,20 +228,17 @@ function sceneTree(local, duration, out) {
     buffer: particles,
     count: particles.count,
     layout: particles.layout,
-    uniforms: { time: local, center: [540, 1000], assemble: progress(local, 0.1, 2.4), burstTime: -1, regroup: 0, fadeOut: 0, morph: 0, festive: 1 },
+    uniforms: { ...TREE_LIGHT, time: local, assemble: progress(local, 0.1, 2.2), burstTime: -1, regroup: 0, fadeOut: 0, morph: 0 },
   });
   drawInto(textLayer, () => {
-    const star = easeOut(progress(local, 2.3, 0.6));
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    drawIcon('sparkle', 540, TREE.top - 20, 150 * star, { alpha: star });
-    lightLeak(540, TREE.top - 20, 260 * star, '255,220,150', 0.5 * star);
-    ctx.restore();
-    reveal('Un fior', 540, 300, local, 2.4, { size: 130 });
-    reveal('de Crăciun.', 540, 440, local, 2.7, { size: 130, italic: true, color: COLORS.goldLight });
+    drawDecorations(local, 1.7);
+    const gift = easeOut(progress(local, 2.0, 0.8));
+    bottle(img.gutui, 830, 1500 + (1 - gift) * 60, 560, { alpha: gift, reflection: 0.25 });
+    reveal('Un fior', 540, 300, local, 2.3, { size: 130 });
+    reveal('de Crăciun.', 540, 440, local, 2.6, { size: 130, italic: true, color: COLORS.goldLight });
   });
   gpu.pass('compose', { target: T.b, textures: { base: T.a, overlay: textTexture() } });
-  snowPass(T.b, out, local, 0.5);
+  snowPass(T.b, out, local, 0.4);
 }
 
 const GIFTS = [
@@ -221,7 +272,7 @@ function sceneRange(local, duration, out) {
   snowPass(T.c, out, local, 0.45);
 }
 
-const BURST_AT = 2.4; // seconds into the finale (26.4 s in the film, on a downbeat)
+const BURST_AT = 1.2; // seconds into the finale (25.2 s in the film, on a beat)
 
 function sceneFinale(local, duration, out) {
   gpu.pass('bokeh', { target: T.a, uniforms: { time: local, aspect: ASPECT, density: 0.16, baseColor: PINE.base.map((v) => v * 0.6), glowColor: PINE.glow.map((v) => v * 0.5) } });
@@ -231,15 +282,16 @@ function sceneFinale(local, duration, out) {
     count: particles.count,
     layout: particles.layout,
     uniforms: {
-      time: local, center: [540, 1000],
-      assemble: progress(local, 0, 1.6), burstTime: local - BURST_AT,
-      regroup: progress(local, 3.0, 1.3), fadeOut: progress(local, 4.2, 0.6), morph: 1, festive: 1,
+      ...TREE_LIGHT, time: local,
+      assemble: progress(local, -0.2, 1.0), burstTime: local - BURST_AT,
+      regroup: progress(local, 1.7, 1.2), fadeOut: progress(local, 2.8, 0.5), morph: 1,
     },
   });
   drawInto(textLayer, () => {
-    logo(540, 860, LOGO_WIDTH, { alpha: easeOut(progress(local, 4.1, 0.7)), glow: 0.6, shimmer: progress(local, 4.6, 0.8) });
-    reveal('Crăciun fericit!', 540, 1210, local, 4.3, { size: 110, italic: true, color: COLORS.goldLight });
-    reveal('SĂRBĂTORI CU FIORI FRUMOȘI', 540, 1300, local, 4.6, SMALL);
+    drawDecorations(local, 0.2, 1 - progress(local, BURST_AT - 0.1, 0.25));
+    logo(540, 860, LOGO_WIDTH, { alpha: easeOut(progress(local, 2.7, 0.6)), glow: 0.6, shimmer: progress(local, 3.2, 0.8) });
+    reveal('Crăciun fericit!', 540, 1210, local, 3.0, { size: 110, italic: true, color: COLORS.goldLight });
+    reveal('SĂRBĂTORI CU FIORI FRUMOȘI', 540, 1300, local, 3.3, SMALL);
   });
   gpu.pass('compose', { target: T.b, textures: { base: T.a, overlay: textTexture() } });
   const age = local - BURST_AT;
@@ -248,7 +300,7 @@ function sceneFinale(local, duration, out) {
     uniforms: { age: Math.max(age, 0), center: uvPoint(540, 1000), aspect: ASPECT, strength: age >= 0 ? 1.2 : 0 },
     textures: { source: T.b },
   });
-  snowPass(T.c, out, local, 0.5);
+  snowPass(T.c, out, local, 0.4);
 }
 
 // ---------- timeline ----------

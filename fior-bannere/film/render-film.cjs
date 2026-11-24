@@ -31,7 +31,7 @@ const FILMS = {
   craciun: {
     page: 'film-craciun.html', name: 'fior-film-craciun', crf: 22,
     music: ['--style', 'craciun', '--duration', '30', '--bpm', '100', '--sections', '0:intro,4.8:verse,14.4:drop,19.2:verse,24:finale',
-      '--hits', '4.8,9.6,14.4,19.2,24', '--big', '26.4', '--final', '28.2'],
+      '--hits', '4.8,9.6,14.4,19.2,24', '--big', '25.2', '--final', '27'],
   },
 };
 Object.entries({ gutui: 0, sangria: -2, hugo: 3, 'hard-lemonade': 5, gama: 0 }).forEach(([id, key]) => {
