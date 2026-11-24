@@ -74,40 +74,61 @@ class Score:
 
 
 # ---------- lounge (A minor): Am9, Fmaj9, Cmaj9, G6/9 ----------
-LOUNGE_PROGRAMS = {"pad": 49, "epiano": 4, "bass": 33, "celesta": 8, "vibes": 11, "swell": 119, "piano": 0, "timpani": 47, "drums": None}
+LOUNGE_PROGRAMS = {"pad": 49, "epiano": 4, "bass": 33, "celesta": 8, "vibes": 11, "swell": 119, "piano": 0,
+                   "timpani": 47, "guitar": 26, "drums": None}
 LOUNGE_CHORDS = [(45, [57, 60, 64, 67, 71]), (41, [53, 57, 60, 64, 67]), (48, [52, 55, 59, 62, 64]), (43, [55, 59, 62, 64, 69])]
+# A two-bar motif repeated over the progression: (beat in the bar, length in beats, scale step over the chord).
+# Piano plays it in the verse, vibraphone doubles it an octave up in the drop.
+LOUNGE_TUNE = [
+    [(0, 1.5, 4), (1.5, 0.5, 3), (2, 1, 2), (3, 1, 3)],
+    [(0, 2, 4), (2.5, 0.5, 2), (3, 1, 1)],
+    [(0, 1.5, 3), (1.5, 0.5, 4), (2, 1, 2), (3, 1, 1)],
+    [(0, 3, 2)],
+]
+RIDE, RIDE_BELL = 51, 53
 
 
 def lounge_beat(score, section, t, beat, b, bar, root, voicing):
     accent = 1.0 if b == 0 else 0.85
+    swing = beat * 0.58  # swung off-beat
     if b == 0:
-        score.chord("pad", voicing, t, beat * 4, {"intro": 48, "verse": 42, "drop": 46, "finale": 56}[section])
+        score.chord("pad", voicing, t, beat * 4, {"intro": 48, "verse": 40, "drop": 44, "finale": 56}[section])
+    if section in ("verse", "drop"):
+        for start, length, step in LOUNGE_TUNE[bar % 4]:
+            if int(start) == b:
+                when = t + (swing if start % 1 else 0)
+                score.note("piano", voicing[step] + 12, when, beat * length * 0.9, 70 if section == "verse" else 76)
+                if section == "drop":
+                    score.note("vibes", voicing[step] + 24, when, beat * length * 0.9, 52)
     if section == "intro":
         score.note("celesta", voicing[(b * 2) % 5] + 12, t, beat, 40)
         score.note("celesta", voicing[(b * 2 + 3) % 5] + 12, t + beat / 2, beat / 2, 32)
     elif section == "verse":
         if b in (0, 2):
-            score.chord("epiano", voicing, t + (beat / 2 if b == 2 else 0), beat * 0.9, 56 * accent)
+            score.chord("epiano", voicing[:4], t + (swing if b == 2 else 0), beat * 0.9, 50 * accent)
         if b == 0:
-            score.note("bass", root - 12, t, beat * 1.5, 74)
+            score.note("bass", root - 12, t, beat * 1.5, 76)
         if b == 2:
-            score.note("bass", root - 12, t + beat / 2, beat * 0.5, 66)
+            score.note("bass", root - 5, t + swing, beat * 0.5, 66)
+        if b == 3:
+            score.note("bass", root - 12 + 10, t + swing, beat * 0.4, 60)  # walk up into the next bar
         if b in (0, 2):
-            score.note("drums", KICK, t + (beat / 2 if b == 2 else 0), beat / 2, 62)
+            score.note("drums", KICK, t + (swing if b == 2 else 0), beat / 2, 62)
         if b in (1, 3):
-            score.note("drums", STICK, t, beat / 2, 48)
-        score.note("drums", SHAKER, t, beat / 4, 34)
-        score.note("drums", SHAKER, t + beat / 2, beat / 4, 26)
+            score.note("drums", STICK, t, beat / 2, 50)
+        score.note("drums", RIDE, t, beat / 2, 44 if b % 2 == 0 else 36)
+        score.note("drums", SHAKER, t + swing, beat / 4, 26)
     elif section == "drop":
         score.note("drums", KICK, t, beat / 2, 100)
         if b in (1, 3):
             score.note("drums", CLAP, t, beat / 2, 82)
         score.note("drums", HAT, t, beat / 4, 50)
         score.note("drums", OPEN_HAT, t + beat / 2, beat / 4, 52)
-        score.chord("epiano", voicing, t + beat / 2, beat * 0.4, 58)
+        score.note("drums", RIDE_BELL, t, beat / 2, 40)
+        score.chord("guitar", voicing[1:4], t + beat / 2, beat * 0.2, 62)  # muted off-beat stabs
+        score.chord("epiano", voicing[:4], t + beat / 2, beat * 0.4, 50)
         for half in (0, 1):
-            score.note("bass", root - 12 + (12 if half else 0), t + half * beat / 2, beat * 0.45, 84)
-        score.note("vibes", voicing[(b + bar) % 5] + 12, t, beat * 0.9, 56)
+            score.note("bass", root - 12 + (12 if half else 0), t + half * beat / 2, beat * 0.45, 86)
     elif section == "finale" and b == 0:
         score.chord("piano", [root - 12] + voicing, t, beat * 4, 58, roll=0.06)
         score.note("celesta", voicing[-1] + 12, t + beat * 2, beat * 2, 34)
