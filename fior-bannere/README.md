@@ -7,6 +7,22 @@ Doar prezentare de produs: fără prețuri, oferte sau îndemnuri de cumpărare.
 - **5 videouri din carusele** verticale (1080×1920, MP4, cu sunet), în `video/`, plus copii fără sunet
 - **1 film de brand** vertical (1080×1920, 26 s, cu sunet), în `video/fior-film.mp4`, plus o copie fără sunet
 - **Filmul 2, „Aurul toamnei”** (1080×1920, 32 s, cu sunet, efecte WebGL), în `video/fior-film-2.mp4`, plus o copie fără sunet
+- **Filmul 3, „Esența rafinamentului”** (30 s, cu filmarea oficială Fior), în `video/fior-film-3.mp4`
+- **Filmul de Crăciun, „Un fior de Crăciun”** (30 s), în `video/fior-film-craciun.mp4`
+
+Filmele 3 și de Crăciun au fost lucrate în 50 de iterații; jurnalul e în `film/ITERATII.md`.
+
+## Filmul 3 și filmul de Crăciun
+
+- **Filmul 3** montează filmarea oficială de pe fiordrinks.ro (doamna în rochie roșie) cu efectele WebGL: deschidere tip cortină, slow-motion lin, triptic pe ritm, gama în fața filmării estompate, turnatul care se topește în aur lichid și logo.
+- **Filmul de Crăciun**: noapte cu ninsoare și cabană, zoom prin fereastră, glob de zăpadă pe șemineu, brad din particule aprins de o scânteie, cadouri pe ritm, coroniță, felicitare finală.
+
+```bash
+python3 fior-bannere/film/cadre.py              # o dată: descarcă filmarea și extrage cadrele (film/sursa, film/cadre; nu sunt în git)
+node fior-bannere/film/render-film.cjs 3        # -> video/fior-film-3.mp4
+node fior-bannere/film/render-film.cjs craciun  # -> video/fior-film-craciun.mp4
+node fior-bannere/film/storyboard.cjs film-craciun.html /tmp/planșă.png 1 6 12 15 21 27   # cadre de control, fără randare completă
+```
 
 ## Videouri de produs (WebGL)
 
@@ -27,7 +43,7 @@ node fior-bannere/film/render-film.cjs sangria       # -> video/fior-video-sangr
 
 ## Muzica
 
-Toate videourile au muzică compusă din cod (`film/muzica.py`) și cântată cu instrumente reale eșantionate (pian electric, corzi, bas, tobe, celestă, vibrafon) prin FluidSynth, cu banca de sunete FluidR3 GM (licență MIT). Nu există drepturi de autor de rezolvat. Muzica urmează filmul: intro liniștit, strofă, drop pe tăieturile rapide, final cu pian și corzi, chimval la fiecare tranziție.
+Toate videourile au muzică compusă din cod (`film/muzica.py`) și cântată cu instrumente reale eșantionate prin FluidSynth, cu banca de sunete MuseScore General (licență MIT, cu părți CC0; dacă lipsește, se folosește FluidR3 GM). Două stiluri: `lounge` (pian, pian electric, corzi, bas, tobe, vibrafon, chitară) și `craciun` (celestă, flaut, harpă, clopoței, cor, corzi). Nivelul e adus la -14 LUFS. Nu există drepturi de autor de rezolvat. Muzica urmează filmul: intro liniștit, strofă, drop pe tăieturile rapide, final cu pian și corzi, chimval la fiecare tranziție.
 
 Cu `--doar-sunet`, scripturile pun muzică nouă pe varianta fără sunet, fără să mai randeze imaginea:
 
@@ -36,7 +52,7 @@ node fior-bannere/film/render-film.cjs sangria --doar-sunet
 node fior-bannere/render-reels.cjs la-ski --doar-sunet
 ```
 
-Necesită: `apt install fluidsynth fluid-soundfont-gm` și `pip install mido numpy`.
+Necesită: `apt install fluidsynth musescore-general-soundfont` și `pip install mido numpy`.
 
 ## Film 2 – „Aurul toamnei” (WebGL)
 
@@ -109,7 +125,7 @@ Videourile din carusele au muzică (vezi „Muzica”), cu chimval la fiecare sc
 | `carusele.html` | caruselele |
 | `reel.html`, `reel.js` | Reel-urile (`reel.html?c=dupa-job` etc.) |
 | `video-capture.cjs` | captura cadru cu cadru în MP4, folosită de Reels și de film |
-| `film/` | filmele: `desen.js` (desen 2D), `gpu.js` (WebGL), `shadere.js` (efecte), `motor.js` (scene și post-procesare comune), `film.js`, `film-2.js`, `film-produs.js` + `produse.js` (scenele), `muzica.py` (muzica: MIDI cântat cu FluidSynth) |
+| `film/` | filmele: `desen.js` (desen 2D), `gpu.js` (WebGL), `shadere.js` (efecte), `motor.js` (scene și post-procesare comune), `film.js`, `film-2.js`, `film-3.js`, `film-craciun.js`, `film-produs.js` + `produse.js` (scenele), `filmare.js` + `cadre.py` (filmarea reală), `storyboard.cjs` (planșe de control), `muzica.py` (muzica: MIDI cântat cu FluidSynth), `ITERATII.md` (jurnalul celor 50 de iterații) |
 
 ## Cum modifici
 
