@@ -70,15 +70,21 @@ function radialBackground(x, y, radius, stops) {
   ctx.fillRect(0, 0, W, H);
 }
 
+// `maxWidth` (optional) shrinks the font until the line fits.
 function text(str, x, y, { size = 60, family = SERIF, weight = 400, italic = false, color = COLORS.cream,
-  align = 'center', alpha = 1, blur = 0, spacing = 0, shadow = 0 } = {}) {
+  align = 'center', alpha = 1, blur = 0, spacing = 0, shadow = 0, maxWidth = 0 } = {}) {
   if (alpha <= 0.001) return;
   ctx.save();
   ctx.globalAlpha *= alpha;
-  ctx.font = `${italic ? 'italic ' : ''}${weight} ${size}px ${family}`;
+  const font = (px) => `${italic ? 'italic ' : ''}${weight} ${px}px ${family}`;
+  ctx.font = font(size);
   ctx.fillStyle = color;
   ctx.textAlign = align;
   ctx.letterSpacing = `${spacing}px`;
+  if (maxWidth) {
+    const width = ctx.measureText(str).width;
+    if (width > maxWidth) ctx.font = font(Math.floor((size * maxWidth) / width));
+  }
   if (blur > 0.3) ctx.filter = `blur(${blur}px)`;
   if (shadow) {
     ctx.shadowColor = 'rgba(0,0,0,.6)';
