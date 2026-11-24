@@ -26,6 +26,7 @@ const scenes = carousel.slides.map((slide, index) => {
 });
 
 window.VIDEO_DURATION = clock + END_HOLD;
+window.SCENE_STARTS = scenes.map((scene) => scene.start); // for the sound track (film/sunet-carusel.py)
 
 const clamp = (value) => Math.min(1, Math.max(0, value));
 const easeOut = (value) => 1 - (1 - value) ** 3;

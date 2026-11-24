@@ -4,7 +4,7 @@ Doar prezentare de produs: fără prețuri, oferte sau îndemnuri de cumpărare.
 
 - **10 postări** pătrate (1080×1080), în `png/`
 - **5 carusele** cu idei și rețete (1080×1350, 26 de slide-uri), în `png/carusele/`
-- **5 Reels** verticale (1080×1920, MP4, fără sunet), în `video/`
+- **5 videouri din carusele** verticale (1080×1920, MP4, cu sunet), în `video/`, plus copii fără sunet
 - **1 film de brand** vertical (1080×1920, 26 s, cu sunet), în `video/fior-film.mp4`, plus o copie fără sunet
 - **Filmul 2, „Aurul toamnei”** (1080×1920, 32 s, cu sunet, efecte WebGL), în `video/fior-film-2.mp4`, plus o copie fără sunet
 
@@ -81,7 +81,7 @@ Fiecare carusel are și o variantă Reel cu același conținut, animată.
 | `png/carusele/langa-brad/` | `video/langa-brad.mp4` | Lângă brad: Fior de Crăciun, punch de sărbători, înghețată cu gutui |
 | `png/carusele/retete/` | `video/retete.mp4` | 4 rețete: Gutui sour, Sangria royale, Hugo smash, Ginger lemonade |
 
-Reels-urile nu au sunet: muzica se adaugă direct în Instagram, din biblioteca lor (așa nu sunt probleme de drepturi de autor).
+Videourile din carusele au o coloană sonoră generată din cod (`film/sunet-carusel.py`), cu „whoosh” la fiecare schimbare de slide. Copiile `-fara-sunet.mp4` sunt pentru cine vrea muzică din biblioteca Instagram.
 
 ## Sursa materialelor
 
@@ -115,7 +115,7 @@ Reels-urile nu au sunet: muzica se adaugă direct în Instagram, din biblioteca 
 ```bash
 node fior-bannere/render.cjs                 # postările -> png/
 node fior-bannere/render.cjs carusele.html   # caruselele -> png/carusele/
-node fior-bannere/render-reels.cjs           # Reels -> video/ (sau doar unul: ... render-reels.cjs la-ski)
+node fior-bannere/render-reels.cjs           # videourile din carusele, cu sunet -> video/ (sau doar unul: ... render-reels.cjs la-ski)
 ```
 
 Ai nevoie de Playwright cu Chromium, iar pentru Reels și de ffmpeg.
