@@ -1,27 +1,38 @@
-// Renders the Fior brand film to video/fior-film.mp4 (with sound) and video/fior-film-fara-sunet.mp4.
-// Usage: python3 fior-bannere/film/sunet.py && node fior-bannere/film/render-film.cjs
+// Renders a Fior brand film with its sound track into ../video, plus a silent copy.
+// Usage: node fior-bannere/film/render-film.cjs [1|2]
+//   film 1: film.html   + sunet.wav    (python3 fior-bannere/film/sunet.py)    -> fior-film.mp4
+//   film 2: film-2.html + sunet-2.wav  (python3 fior-bannere/film/sunet-2.py)  -> fior-film-2.mp4
 const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
 const { captureVideo } = require('../video-capture.cjs');
 
-const OUT_DIR = path.join(__dirname, '..', 'video');
-const WITH_SOUND = path.join(OUT_DIR, 'fior-film.mp4');
-const SILENT = path.join(OUT_DIR, 'fior-film-fara-sunet.mp4');
+const FILMS = {
+  1: { page: 'film.html', audio: 'sunet.wav', name: 'fior-film' },
+  2: { page: 'film-2.html', audio: 'sunet-2.wav', name: 'fior-film-2' },
+};
+// Film 2 draws with WebGL and needs the local images on the GPU.
+const BROWSER_ARGS = ['--allow-file-access-from-files', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
 
 (async () => {
-  fs.mkdirSync(OUT_DIR, { recursive: true });
-  const browser = await chromium.launch();
+  const film = FILMS[process.argv[2] || '1'];
+  if (!film) throw new Error('Usage: render-film.cjs [1|2]');
+  const outDir = path.join(__dirname, '..', 'video');
+  const withSound = path.join(outDir, `${film.name}.mp4`);
+  const silent = path.join(outDir, `${film.name}-fara-sunet.mp4`);
+  fs.mkdirSync(outDir, { recursive: true });
+
+  const browser = await chromium.launch({ args: BROWSER_ARGS });
   const duration = await captureVideo(browser, {
-    url: 'file://' + path.join(__dirname, 'film.html'),
-    outFile: WITH_SOUND,
-    audioFile: path.join(__dirname, 'sunet.wav'),
+    url: 'file://' + path.join(__dirname, film.page),
+    outFile: withSound,
+    audioFile: path.join(__dirname, film.audio),
     crf: 18,
   });
   await browser.close();
 
-  const strip = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', WITH_SOUND, '-an', '-c:v', 'copy', SILENT], { stdio: 'inherit' });
+  const strip = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', withSound, '-an', '-c:v', 'copy', silent], { stdio: 'inherit' });
   if (strip.status !== 0) throw new Error('ffmpeg could not write the silent copy');
-  console.log(`video/fior-film.mp4 + video/fior-film-fara-sunet.mp4  ${duration} s`);
+  console.log(`video/${film.name}.mp4 + video/${film.name}-fara-sunet.mp4  ${duration} s`);
 })();

@@ -6,6 +6,23 @@ Doar prezentare de produs: fără prețuri, oferte sau îndemnuri de cumpărare.
 - **5 carusele** cu idei și rețete (1080×1350, 26 de slide-uri), în `png/carusele/`
 - **5 Reels** verticale (1080×1920, MP4, fără sunet), în `video/`
 - **1 film de brand** vertical (1080×1920, 26 s, cu sunet), în `video/fior-film.mp4`, plus o copie fără sunet
+- **Filmul 2, „Aurul toamnei”** (1080×1920, 32 s, cu sunet, efecte WebGL), în `video/fior-film-2.mp4`, plus o copie fără sunet
+
+## Film 2 – „Aurul toamnei” (WebGL)
+
+1. Aur lichid din care se ridică logo-ul în relief; aurul se retrage cu margini incandescente.
+2. Sticla de gutui luminată din spate: raze volumetrice, praf auriu, reflexii de lumină pe podea.
+3. Zoom prin eticheta sticlei, iar fotografiile cu oameni apar ca printr-un lichid care se liniștește.
+4. Drop pe beat: 8 tăieturi cu undă de șoc, aberație cromatică și raze colorate în spatele sticlelor.
+5. Gama completă pe orbită, cu lumini bokeh și raze printre sticle.
+6. Final: 30.000 de particule formează logo-ul, explodează pe drop și se reasamblează.
+
+```bash
+python3 fior-bannere/film/sunet-2.py        # coloana sonoră -> film/sunet-2.wav
+node fior-bannere/film/render-film.cjs 2    # -> video/fior-film-2.mp4 și video/fior-film-2-fara-sunet.mp4
+```
+
+Randarea folosește WebGL prin Chromium (merge și fără placă video, mai încet: ~10 minute).
 
 ## Film de brand
 
@@ -66,7 +83,7 @@ Reels-urile nu au sunet: muzica se adaugă direct în Instagram, din biblioteca 
 | `carusele.html` | caruselele |
 | `reel.html`, `reel.js` | Reel-urile (`reel.html?c=dupa-job` etc.) |
 | `video-capture.cjs` | captura cadru cu cadru în MP4, folosită de Reels și de film |
-| `film/` | filmul de brand: scenele (`film.js`), sunetul (`sunet.py`), punctele logo-ului |
+| `film/` | filmele de brand: `desen.js` (desen 2D comun), `gpu.js` (WebGL), `film.js` și `film-2.js` (scenele), `instrumente.py` (sunete comune), `sunet.py` și `sunet-2.py` (coloanele sonore) |
 
 ## Cum modifici
 
