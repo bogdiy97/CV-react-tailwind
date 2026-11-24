@@ -5,6 +5,19 @@ Doar prezentare de produs: fără prețuri, oferte sau îndemnuri de cumpărare.
 - **10 postări** pătrate (1080×1080), în `png/`
 - **5 carusele** cu idei și rețete (1080×1350, 26 de slide-uri), în `png/carusele/`
 - **5 Reels** verticale (1080×1920, MP4, fără sunet), în `video/`
+- **1 film de brand** vertical (1080×1920, 26 s, cu sunet), în `video/fior-film.mp4`, plus o copie fără sunet
+
+## Film de brand
+
+Logo-ul se formează din particule aurii, apoi apar sticla de gutui cu o rază de lumină, cele două fotografii cu oameni, cadre rapide pe ritm cu Berry Sangria, Elderberry Hugo, Lichior de gutui și Hard Lemonade, gama completă pe o orbită 3D și finalul „Fiecare detaliu contează.”
+
+Sunetul e generat din cod (`film/sunet.py`), deci nu există drepturi de autor de rezolvat.
+
+```bash
+python3 fior-bannere/film/puncte_logo.py   # doar dacă se schimbă logo-ul
+python3 fior-bannere/film/sunet.py         # coloana sonoră -> film/sunet.wav
+node fior-bannere/film/render-film.cjs     # -> video/fior-film.mp4 și video/fior-film-fara-sunet.mp4
+```
 
 ## Postări
 
@@ -52,6 +65,8 @@ Reels-urile nu au sunet: muzica se adaugă direct în Instagram, din biblioteca 
 | `slides.js`, `slides.css` | șabloanele de slide (copertă, idee, rețetă, final) și scenele pe teme |
 | `carusele.html` | caruselele |
 | `reel.html`, `reel.js` | Reel-urile (`reel.html?c=dupa-job` etc.) |
+| `video-capture.cjs` | captura cadru cu cadru în MP4, folosită de Reels și de film |
+| `film/` | filmul de brand: scenele (`film.js`), sunetul (`sunet.py`), punctele logo-ului |
 
 ## Cum modifici
 
