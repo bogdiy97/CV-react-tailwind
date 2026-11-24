@@ -211,9 +211,10 @@ SHADERS.mix = `uniform sampler2D srcA; uniform sampler2D srcB; uniform float amo
     color = vec4(c + flash * vec3(1.0, 0.9, 0.72), 1.0);
   }`;
 
-// Film look for real footage: sharpen (it is upscaled), exposure, contrast, saturation, warm highlights.
+// Film look for real footage: sharpen (it is upscaled), exposure, contrast, saturation, warm highlights,
+// and light leaks (leak 0..1): warm blobs drifting across the frame, blended like light on film.
 SHADERS.grade = `uniform sampler2D source; uniform float sharpen; uniform float exposure; uniform float contrast;
-  uniform float saturation; uniform float warmth;
+  uniform float saturation; uniform float warmth; uniform float leak;
   void main() {
     vec2 px = 1.0 / resolution;
     vec3 c = texture(source, uv).rgb;
@@ -224,7 +225,14 @@ SHADERS.grade = `uniform sampler2D source; uniform float sharpen; uniform float 
     c = mix(vec3(l), c, saturation);
     c = (c - 0.5) * contrast + 0.5;
     c += warmth * (vec3(0.06, 0.02, -0.05) * smoothstep(0.2, 0.9, l) + vec3(-0.02, 0.0, 0.03) * (1.0 - smoothstep(0.0, 0.4, l)));
-    color = vec4(max(c, 0.0), 1.0);
+    c = max(c, 0.0);
+
+    vec2 a = vec2(fract(time * 0.11) * 1.8 - 0.4, 0.78 + 0.12 * sin(time * 0.7));
+    vec2 b = vec2(1.3 - fract(time * 0.08 + 0.4) * 1.8, 0.2 + 0.1 * cos(time * 0.5));
+    vec3 light = vec3(1.0, 0.55, 0.2) * exp(-dot((uv - a) * vec2(1.0, 1.9), (uv - a) * vec2(1.0, 1.9)) * 5.0)
+      + vec3(0.9, 0.25, 0.25) * exp(-dot((uv - b) * vec2(1.0, 1.9), (uv - b) * vec2(1.0, 1.9)) * 6.0) * 0.7;
+    light *= leak * (0.85 + 0.15 * sin(time * 9.0));
+    color = vec4(1.0 - (1.0 - min(c, 1.0)) * (1.0 - min(light, 1.0)) + max(c - 1.0, 0.0), 1.0);
   }`;
 
 // Falling snow in six depth layers, added on top of the source: a few big, soft, fast flakes close to the

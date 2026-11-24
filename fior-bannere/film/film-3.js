@@ -6,7 +6,7 @@ window.VIDEO_DURATION = VIDEO_DURATION;
 const BEAT = 0.5;
 const FPS = 30;
 
-const LOOK = { sharpen: 0.6, exposure: 0.96, contrast: 1.08, saturation: 1.05, warmth: 0.6 };
+const LOOK = { sharpen: 0.6, exposure: 0.96, contrast: 1.08, saturation: 1.05, warmth: 0.6, leak: 0.5 };
 const LOGO_WIDTH = 720;
 const LOGO_RECT = { x: 540 - LOGO_WIDTH / 2, y: 860 - (LOGO_WIDTH * 347) / 635 / 2, width: LOGO_WIDTH, height: (LOGO_WIDTH * 347) / 635 };
 const reliefCanvas = makeCanvas();
@@ -23,6 +23,18 @@ function scrim(top = 0.5, bottom = 0.75) {
   });
 }
 
+// Black bars that open from a slit in the middle of the frame (open 0..1), with thin gold edges.
+function curtain(open) {
+  if (open >= 1) return;
+  const bar = (1 - open) * (H / 2 - 4);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, bar);
+  ctx.fillRect(0, H - bar, W, bar);
+  ctx.fillStyle = `rgba(236,213,155,${0.9 * (1 - open)})`;
+  ctx.fillRect(0, bar - 2, W, 2);
+  ctx.fillRect(0, H - bar, W, 2);
+}
+
 // A full-bleed footage scene. shot(local, duration) -> { clip, position, fx, fy, zoom }.
 function footageScene(shot, drawWords, look = LOOK) {
   return {
@@ -30,7 +42,7 @@ function footageScene(shot, drawWords, look = LOOK) {
     draw(local, duration, out) {
       const frame = shot(local, duration);
       drawInto(layer, () => drawClip(frame.clip, frame.position, frame));
-      gpu.pass('grade', { target: T.a, uniforms: look, textures: { source: layerTexture() } });
+      gpu.pass('grade', { target: T.a, uniforms: { ...look, time: local + (look.leakOffset || 0) }, textures: { source: layerTexture() } });
       drawInto(textLayer, () => drawWords(local, duration));
       gpu.pass('compose', { target: out, textures: { base: T.a, overlay: textTexture() } });
     },
@@ -44,6 +56,7 @@ const sceneDoor = footageScene(
   (local, duration) => ({ clip: 'usa', position: 10 + local * FPS, fx: lerp(0.42, 0.5, local / duration), zoom: lerp(1, 1.06, local / duration) }),
   (local) => {
     scrim(0.45, 0.8);
+    curtain(easeInOut(progress(local, 0.1, 1.3)));
     riseText('Esența', 540, 1340, local, 1.0, { size: 150, shadow: 30 });
     riseText('rafinamentului', 540, 1480, local, 1.3, { size: 118, italic: true, gold: true, shadow: 30 });
   },
