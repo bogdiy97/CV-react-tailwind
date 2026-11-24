@@ -87,36 +87,56 @@ const sceneLabel = footageScene(
   },
 );
 
-const DROP_CUTS = [
-  { clip: 'pasi', from: 0, fx: 0.52 },
-  { bottles: ['gutui'], name: 'Lichior de gutui', label: 'NEFILTRAT · DIN FRUCTE ROMÂNEȘTI', stage: STAGES.gutui },
-  { clip: 'palarie', from: 110, fx: 0.48 },
-  { bottles: ['sangria'], name: 'Berry Sangria', label: 'COCKTAIL READY TO DRINK', stage: STAGES.sangria },
-  { clip: 'pasi', from: 112, fx: 0.56 },
-  { bottles: ['hugo'], name: 'Elderberry Hugo', label: 'COCKTAIL READY TO DRINK', stage: STAGES.hugo },
-  { clip: 'masa', from: 165, fx: 0.5, fy: 0.85, zoom: 1.3 },
-  { bottles: HL_ALL, name: 'Hard Lemonade', label: 'PATRU AROME', stage: STAGES.lemon },
+// The drop, one step per beat: a triptych of widescreen bands builds up (the footage at its full width),
+// then the four drinks, then her eyes to the camera.
+const TRIPTYCH = [
+  { clip: 'palarie', from: 96, fx: 0.5, fy: 0.45, side: -1 },
+  { clip: 'eticheta', from: 0, fx: 0.47, fy: 0.5, side: 1 },
+  { clip: 'pasi', from: 0, fx: 0.5, fy: 0.55, side: -1 },
 ];
-const dropCut = (local) => {
-  const index = Math.min(DROP_CUTS.length - 1, Math.floor(local / BEAT));
-  return { cut: DROP_CUTS[index], cl: local - index * BEAT };
+const BAND = H / 3;
+const DROP_CUTS = [
+  { bottles: ['gutui'], name: 'Lichior de gutui', label: 'NEFILTRAT · DIN FRUCTE ROMÂNEȘTI', stage: STAGES.gutui },
+  { bottles: ['sangria'], name: 'Berry Sangria', label: 'COCKTAIL READY TO DRINK', stage: STAGES.sangria },
+  { bottles: ['hugo'], name: 'Elderberry Hugo', label: 'COCKTAIL READY TO DRINK', stage: STAGES.hugo },
+  { bottles: HL_ALL, name: 'Hard Lemonade', label: 'PATRU AROME', stage: STAGES.lemon },
+  { clip: 'palarie', from: 112, fx: 0.48 },
+];
+const dropStep = (local) => {
+  const beat = Math.min(7, Math.floor(local / BEAT));
+  return { beat, cl: local - beat * BEAT, cut: DROP_CUTS[beat - TRIPTYCH.length] };
 };
+const bandFrame = (band, index, local) => band.from + Math.max(0, local - index * BEAT) * FPS;
 
 const sceneDrop = {
   clips(local) {
-    const { cut, cl } = dropCut(local);
+    const { beat, cl, cut } = dropStep(local);
+    if (!cut) return TRIPTYCH.filter((band, i) => beat >= i).map((band, i) => ({ clip: band.clip, position: bandFrame(band, i, local) }));
     return cut.clip ? [{ clip: cut.clip, position: cut.from + cl * FPS }] : [];
   },
   draw(local, duration, out) {
-    const { cut, cl } = dropCut(local);
+    const { beat, cl, cut } = dropStep(local);
     const zoomIn = 1.14 - 0.14 * easeOut(cl / BEAT);
-    if (cut.clip) {
+    if (!cut) {
+      drawInto(layer, () => {
+        ctx.fillStyle = '#060302';
+        ctx.fillRect(0, 0, W, H);
+        TRIPTYCH.forEach((band, i) => {
+          if (beat < i) return;
+          const slide = i === 0 ? 0 : 1 - easeOut(progress(local, i * BEAT, 0.24));
+          const push = 1.1 - 0.1 * easeOut(progress(local, i * BEAT, 1.5));
+          drawClip(band.clip, bandFrame(band, i, local), { fx: band.fx, fy: band.fy, zoom: push, x: band.side * slide * W, y: i * BAND, w: W, h: BAND - 6 });
+        });
+      });
+      gpu.pass('grade', { target: T.c, uniforms: { ...LOOK, time: local }, textures: { source: layerTexture() } });
+    } else if (cut.clip) {
       drawInto(layer, () => drawClip(cut.clip, cut.from + cl * FPS, { fx: cut.fx, fy: cut.fy, zoom: (cut.zoom || 1) * zoomIn }));
-      gpu.pass('grade', { target: T.c, uniforms: LOOK, textures: { source: layerTexture() } });
+      gpu.pass('grade', { target: T.c, uniforms: { ...LOOK, time: local }, textures: { source: layerTexture() } });
     } else {
       bottleCut(cl, T.c, { ...cut, zoomIn });
     }
-    gpu.pass('shock', { target: out, uniforms: { age: cl, center: [0.5, 0.5], aspect: ASPECT, strength: 1 }, textures: { source: T.c } });
+    const center = cut ? [0.5, 0.5] : [0.5, 1 - (beat + 0.5) / 3];
+    gpu.pass('shock', { target: out, uniforms: { age: cl, center, aspect: ASPECT, strength: cut ? 1 : 0.7 }, textures: { source: T.c } });
   },
 };
 
