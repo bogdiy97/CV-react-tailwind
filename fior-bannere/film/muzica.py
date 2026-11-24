@@ -31,6 +31,11 @@ DRUMS = 9
 KICK, STICK, CLAP, HAT, OPEN_HAT, CRASH, TAMBOURINE, CRASH2, SHAKER, TRIANGLE, SLEIGH = 36, 37, 39, 42, 46, 49, 54, 57, 70, 81, 83
 
 
+# Where each instrument sits between the speakers (0 = left, 64 = centre, 127 = right).
+PAN = {"piano": 52, "epiano": 80, "guitar": 38, "vibes": 92, "celesta": 84, "glock": 96, "harp": 36, "flute": 58,
+       "bells": 74, "choir": 64, "strings": 64, "pad": 64, "bass": 64, "timpani": 60, "swell": 64}
+
+
 class Score:
     """Notes on named instruments; `programs` maps a name to its General MIDI program (0-based)."""
 
@@ -67,8 +72,10 @@ class Score:
         track.append(mido.MetaMessage("set_tempo", tempo=mido.bpm2tempo(self.bpm), time=0))
         for name, program in self.programs.items():
             if name != "drums":
-                track.append(mido.Message("program_change", channel=self.channels[name], program=program, time=0))
-                track.append(mido.Message("control_change", channel=self.channels[name], control=91, value=70, time=0))  # reverb send
+                channel = self.channels[name]
+                track.append(mido.Message("program_change", channel=channel, program=program, time=0))
+                track.append(mido.Message("control_change", channel=channel, control=91, value=70, time=0))  # reverb send
+                track.append(mido.Message("control_change", channel=channel, control=10, value=PAN.get(name, 64), time=0))
         last = 0
         for tick, _, message in sorted(self.events, key=lambda e: (e[0], e[1])):
             track.append(message.copy(time=tick - last))
