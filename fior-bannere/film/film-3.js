@@ -142,16 +142,33 @@ const sceneDrop = {
 
 const RING = ['gutui', 'hlZmeura', 'sangria', 'hlMenta', 'hugo', 'hlGhimbir', 'hlSoc'];
 
-function sceneOrbit(local, duration, out) {
-  orbitScene(local, duration, out, {
-    ring: RING,
-    drawText: () => {
-      goldDust(local, 110, 23, { speed: 30, alpha: 0.7 });
-      riseText('Singur sau', 540, 300, local, 0.5, { size: 120 });
-      riseText('împreună.', 540, 430, local, 0.75, { size: 120, italic: true, gold: true });
-    },
-  });
-}
+// The range turns in front of her, out of focus at her table.
+const orbitShot = (local) => ({ clip: 'masa', position: 20 + local * FPS, fx: 0.5, zoom: 1.05 });
+const sceneOrbit = {
+  clips: (local) => [orbitShot(local)],
+  draw(local, duration, out) {
+    orbitScene(local, duration, out, {
+      ring: RING,
+      drawBackdrop: () => {
+        const shot = orbitShot(local);
+        ctx.save();
+        ctx.filter = 'blur(26px) brightness(0.5) saturate(1.15)';
+        drawClip(shot.clip, shot.position, { ...shot, x: -60, y: -60, w: W + 120, h: H + 120 });
+        ctx.restore();
+        const shade = ctx.createLinearGradient(0, 900, 0, H);
+        shade.addColorStop(0, 'rgba(10,5,2,0)');
+        shade.addColorStop(1, 'rgba(10,5,2,.75)');
+        ctx.fillStyle = shade;
+        ctx.fillRect(0, 900, W, H - 900);
+      },
+      drawText: () => {
+        goldDust(local, 110, 23, { speed: 30, alpha: 0.7 });
+        riseText('Singur sau', 540, 300, local, 0.5, { size: 120, shadow: 24 });
+        riseText('împreună.', 540, 430, local, 0.75, { size: 120, italic: true, gold: true, shadow: 24 });
+      },
+    });
+  },
+};
 
 const scenePour = footageScene(
   (local, duration) => ({ clip: 'turnare', position: 8 + local * FPS * 1.4, fx: 0.38, zoom: lerp(1.08, 1, local / duration) }),
@@ -187,7 +204,7 @@ const SCENES = [
   { start: 8, end: 10, ...scenePortrait, transition: 'flash' },
   { start: 10, end: 12, ...sceneLabel, transition: 'dissolve' },
   { start: 12, end: 16, ...sceneDrop },
-  { start: 16, end: 20.5, draw: sceneOrbit, transition: 'burn' },
+  { start: 16, end: 20.5, ...sceneOrbit, transition: 'burn' },
   { start: 20.5, end: 24, ...scenePour, transition: 'flash' },
   { start: 24, end: VIDEO_DURATION, draw: sceneGold, transition: 'burn' },
 ];
