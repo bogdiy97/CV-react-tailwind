@@ -659,8 +659,9 @@ const GIFTS = [
   [{ icon: 'citrus-dark', word: 'Pentru noaptea', sub: 'dintre ani', colors: ['#fff6c9', '#d6ab1d', '#5c4302'] }, { bottles: HL_ALL, name: 'Hard Lemonade', label: 'PATRU AROME', stage: STAGES.lemon }],
 ];
 
-// Bows on the bottle necks.
-const bowOn = (item, baseY) => drawBow(item.x, baseY - item.height * 0.63, item.height * 0.27);
+// Bows on the bottle necks (as a fraction of the bottle's height), clear of the labels.
+const NECK = { gutui: 0.74 };
+const bowOn = (item, baseY) => drawBow(item.x, baseY - item.height * (NECK[item.key] ?? 0.63), item.height * 0.27);
 
 function sceneGifts(local, duration, out) {
   const index = beatIndex(local, BEAT, 7);
