@@ -19,6 +19,8 @@ import tempfile
 import wave
 from pathlib import Path
 
+import random
+
 import mido
 import numpy as np
 
@@ -40,6 +42,7 @@ class Score:
         self.channels["drums"] = DRUMS
         self.programs = programs
         self.events = []  # (tick, order, message)
+        self.human = random.Random(12)  # small, repeatable differences in touch and timing
 
     def tick(self, seconds):
         return max(0, round(seconds * self.bpm / 60 * TICKS))
@@ -49,7 +52,9 @@ class Score:
             return
         channel = self.channels[instrument]
         pitch += 0 if channel == DRUMS else self.key
-        velocity = int(max(1, min(127, velocity)))
+        velocity = int(max(1, min(127, velocity * self.human.uniform(0.92, 1.06))))
+        if channel != DRUMS:
+            start += self.human.uniform(0, 0.008)  # melodic parts sit a hair behind the drums
         self.events.append((self.tick(start), 1, mido.Message("note_on", channel=channel, note=pitch, velocity=velocity)))
         self.events.append((self.tick(start + length), 0, mido.Message("note_off", channel=channel, note=pitch, velocity=0)))
 
@@ -211,9 +216,25 @@ def craciun_ending(score, start, length):
     score.note("glock", voicing[-1] + 24, start + 0.4, length - 0.4, 50)
 
 
+def lounge_fill(score, at, beat):
+    """Toms rolling down into the next section."""
+    for i, tom in enumerate((50, 48, 47, 45)):
+        score.note("drums", tom, at - beat + i * beat / 4, beat / 4, 66 + i * 9)
+
+
+def craciun_fill(score, at, beat):
+    """A harp glissando sweeping up into the next section, with sleigh bells shaking."""
+    scale = [60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77, 79, 81, 83, 84, 86]
+    span = beat * 1.5
+    for i, pitch in enumerate(scale):
+        score.note("harp", pitch, at - span + i * span / len(scale), beat, 48 + i * 2)
+    for i in range(6):
+        score.note("drums", SLEIGH, at - beat * 0.75 + i * beat / 8, beat / 8, 50 + i * 6)
+
+
 STYLES = {
-    "lounge": (LOUNGE_PROGRAMS, LOUNGE_CHORDS, lounge_beat, lounge_ending),
-    "craciun": (CRACIUN_PROGRAMS, CRACIUN_CHORDS, craciun_beat, craciun_ending),
+    "lounge": (LOUNGE_PROGRAMS, LOUNGE_CHORDS, lounge_beat, lounge_ending, lounge_fill),
+    "craciun": (CRACIUN_PROGRAMS, CRACIUN_CHORDS, craciun_beat, craciun_ending, craciun_fill),
 }
 
 
@@ -226,7 +247,7 @@ def section_at(sections, t):
 
 
 def compose(args):
-    programs, chords, beat_fn, ending_fn = STYLES[args.style]
+    programs, chords, beat_fn, ending_fn, fill_fn = STYLES[args.style]
     score = Score(args.bpm, args.key, programs)
     beat = 60 / args.bpm
     sections = sorted(args.sections)
@@ -244,6 +265,11 @@ def compose(args):
         bar_start += beat * 4
         bar += 1
     ending_fn(score, final, args.duration - final)
+
+    # A fill leads into every drop, every big hit and the last chord.
+    for at in sorted({start for start, name in sections if name == "drop"} | set(args.big) | {final}):
+        if at >= beat * 2:
+            fill_fn(score, at, beat)
 
     # Transitions: a reverse cymbal swelling into every hit and a crash on it; big hits add timpani and a low root.
     low_root = chords[0][0] - 12
