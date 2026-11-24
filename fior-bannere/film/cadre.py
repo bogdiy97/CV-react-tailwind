@@ -3,8 +3,8 @@
 Downloads https://fiordrinks.ro/wp-content/uploads/2025/04/hero-video.mp4 into film/sursa/ if it is missing,
 then writes film/cadre/<shot>/NNNN.jpg and film/cadre/index.js (frame counts). Both folders are git-ignored.
 
-The source is a 50 fps file, but its shots were filmed at 25, 30, 40 and 45 fps and padded with repeated
-frames, which stutters when played back. For every shot this script drops the repeated frames and, where
+The source is a 50 fps file, but its shots were filmed at 20 to 30 fps and padded with repeated frames,
+which stutters when played back. For every shot this script drops the repeated frames and, where
 `slow` > 1, adds motion-interpolated frames. Played one frame per output frame (30 fps) the clips are smooth
 slow motion.
 
@@ -27,15 +27,16 @@ SOURCE = HERE / "sursa" / "hero-video.mp4"
 URL = "https://fiordrinks.ro/wp-content/uploads/2025/04/hero-video.mp4"
 OUT = HERE / "cadre"
 
-# name: (start s, end s, slow) – slow multiplies the number of frames by motion interpolation.
+# name: (start s, end s, slow). `slow` multiplies the number of frames by motion interpolation; it is chosen so
+# that every clip, played one frame per output frame at 30 fps, runs at roughly 0.5–0.75x of real time.
 SHOTS = {
-    "usa": (0.10, 8.30, 1),         # she walks out of the wooden door, along the columns (45 fps)
-    "trepte": (8.38, 14.38, 2),     # down the steps, the camera tilts up to her face (25 fps)
-    "portret": (14.46, 18.12, 1),   # close-up: face next to the bottle (40 fps)
+    "usa": (0.10, 3.84, 2),         # she steps out of the wooden door (filmed at 24 fps)
+    "trepte": (8.38, 14.38, 1),     # down the steps, the camera tilts up to her face (25 fps, then retimed to 50)
+    "portret": (14.46, 18.12, 2),   # close-up: face next to the bottle (20 fps)
     "eticheta": (18.20, 21.30, 2),  # macro: the label tilting (30 fps)
     "pasi": (22.70, 26.06, 2),      # heels and the red dress, bottle in hand (25 fps)
     "palarie": (26.14, 31.00, 2),   # portrait under the black hat (25 fps)
-    "masa": (31.08, 34.78, 1),      # at the table with two bottles (30, then 50 fps)
+    "masa": (31.08, 34.78, 1),      # at the table with two bottles (30 fps, then 50)
     "turnare": (34.86, 36.70, 4),   # macro: the liqueur pours into a glass (25 fps)
 }
 INTERPOLATE = "minterpolate=fps={fps}:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1"
@@ -46,13 +47,15 @@ def ffmpeg(*args):
 
 
 def unique_frames(frames):
-    """Drops repeated frames: those that barely differ from the previous one, compared with their neighbours."""
+    """Drops repeated frames: those that barely differ from the previous one, compared with the real motion
+    around them (the upper quartile of the neighbouring differences, so it also works when every other frame
+    is a repeat)."""
     small = [np.asarray(Image.open(f).convert("L").resize((192, 108))).astype(float) for f in frames]
     diffs = np.array([0.0] + [np.abs(a - b).mean() for a, b in zip(small[1:], small[:-1])])
     keep = [frames[0]]
     for i in range(1, len(frames)):
         around = diffs[max(1, i - 12): i + 13]
-        if diffs[i] >= 0.35 * np.median(around):
+        if diffs[i] >= 0.35 * np.percentile(around, 75):
             keep.append(frames[i])
     return keep
 
