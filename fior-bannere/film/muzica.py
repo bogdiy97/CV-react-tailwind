@@ -1,7 +1,7 @@
 """Music for the Fior videos, composed as MIDI and played with sampled instruments through FluidSynth
 (MuseScore General soundfont, MIT/CC0; falls back to FluidR3 GM, MIT), so there are no music rights to clear.
 
-The arrangement follows the video: --sections set the energy, --hits mark the cuts.
+The arrangement follows the video: --sections set the energy, --hits mark the cuts, --sparkle the magic moments.
 Styles:
   lounge  – A minor: electric piano, strings, finger bass, light drums, vibraphone (brand films, products)
   craciun – C major: celesta, glockenspiel, harp, strings, choir, sleigh bells, tubular bells (Christmas film)
@@ -28,7 +28,7 @@ SOUNDFONTS = ["/usr/share/sounds/sf3/MuseScore_General_Full.sf3", "/usr/share/so
 SR = 48000
 TICKS = 480
 DRUMS = 9
-KICK, STICK, CLAP, HAT, OPEN_HAT, CRASH, TAMBOURINE, CRASH2, SHAKER, TRIANGLE, SLEIGH = 36, 37, 39, 42, 46, 49, 54, 57, 70, 81, 83
+KICK, STICK, CLAP, HAT, OPEN_HAT, CRASH, TAMBOURINE, CRASH2, SHAKER, TRIANGLE, SLEIGH, BELL_TREE = 36, 37, 39, 42, 46, 49, 54, 57, 70, 81, 83, 84
 
 
 # Where each instrument sits between the speakers (0 = left, 64 = centre, 127 = right).
@@ -278,6 +278,13 @@ def compose(args):
         if at >= beat * 2:
             fill_fn(score, at, beat)
 
+    # Sparkles (a title, a star, the logo): a bell tree with a quick run up the tonic chord on the celesta.
+    run_up = chords[0][1] + [chords[0][1][0] + 12, chords[0][1][1] + 12]
+    for at in args.sparkle:
+        score.note("drums", BELL_TREE, at, 1.5, 84)
+        for i, pitch in enumerate(run_up):
+            score.note("celesta", pitch + 12, at + i * 0.07, 0.6, 52 + i * 5)
+
     # Transitions: a reverse cymbal swelling into every hit and a crash on it; big hits add timpani and a low root.
     low_root = chords[0][0] - 12
     for hit in sorted(set(args.hits) | set(args.big)):
@@ -359,6 +366,7 @@ def main():
     parser.add_argument("--sections", type=sections, required=True)
     parser.add_argument("--hits", type=times, default=[])
     parser.add_argument("--big", type=times, default=[])
+    parser.add_argument("--sparkle", type=times, default=[], help="times of a bell-tree sparkle")
     parser.add_argument("--final", type=float, default=None, help="when the last chord starts (default: the finale)")
     args = parser.parse_args()
     render(compose(args), args.out, args.duration)

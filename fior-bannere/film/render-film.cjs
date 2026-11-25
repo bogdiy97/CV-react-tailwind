@@ -26,12 +26,12 @@ const FILMS = {
   3: {
     page: 'film-3.html', name: 'fior-film-3', crf: 21,
     music: ['--duration', '30', '--bpm', '120', '--sections', '0:intro,4:verse,12:drop,16:verse,20.5:intro,24:finale',
-      '--hits', '4,8,10,12,16,18,20.5', '--big', '24', '--final', '26.6'],
+      '--hits', '4,8,10,12,16,18,20.5', '--big', '24', '--final', '26.6', '--sparkle', '1.0,26.3'],
   },
   craciun: {
     page: 'film-craciun.html', name: 'fior-film-craciun', crf: 22,
     music: ['--style', 'craciun', '--duration', '30', '--bpm', '100', '--sections', '0:intro,4.8:verse,14.4:drop,19.2:verse,24:finale',
-      '--hits', '4.8,9.6,14.4,19.2,24', '--big', '25.2', '--final', '27'],
+      '--hits', '4.8,9.6,14.4,19.2,24', '--big', '25.2', '--final', '27', '--sparkle', '2.2,11.1,12.2,27.3'],
   },
 };
 Object.entries({ gutui: 0, sangria: -2, hugo: 3, 'hard-lemonade': 5, gama: 0 }).forEach(([id, key]) => {
