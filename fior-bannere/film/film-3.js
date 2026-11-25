@@ -171,7 +171,9 @@ const sceneDrop = {
     } else {
       bottleCut(cl, T.c, { ...cut, zoomIn });
     }
-    gpu.pass('shock', { target: out, uniforms: { age: cl, center: [0.5, 0.5], aspect: ASPECT, strength: cut || beat === 0 ? 1 : 0.5 }, textures: { source: T.c } });
+    // the bottle cards take the full flash; the footage is bright already, so it gets a gentler one
+    const strength = cut && !cut.clip ? 1 : 0.45;
+    gpu.pass('shock', { target: out, uniforms: { age: cl, center: [0.5, 0.5], aspect: ASPECT, strength }, textures: { source: T.c } });
   },
 };
 
@@ -180,7 +182,8 @@ const sceneAlone = footageScene(
   (local, duration) => ({ clip: 'masa', position: 6 + local * FPS, fx: 0.62, zoom: lerp(1, 1.05, local / duration) }),
   (local) => {
     scrim(0.2, 0.8);
-    riseText('Singur', 540, 1500, local, 0.25, { size: 170, shadow: 36 });
+    // gone before the next shot dissolves in with its own line
+    riseText('Singur', 540, 1500, local, 0.25, { size: 170, shadow: 36, alpha: 1 - progress(local, 1.75, 0.25) });
   },
   { ...LOOK, exposure: 0.82, lift: 0.3 },
 );

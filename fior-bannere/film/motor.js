@@ -230,7 +230,7 @@ const TRANSITIONS = {
     duration: 0.35,
     draw(previous, next, t, p) {
       drawScene(next, t, T.frameB);
-      gpu.pass('mix', { target: T.out, uniforms: { amount: 1, flash: (1 - p) ** 2 }, textures: { srcA: T.frameB, srcB: T.frameB } });
+      gpu.pass('mix', { target: T.out, uniforms: { amount: 1, flash: 0.5 * (1 - p) ** 2 }, textures: { srcA: T.frameB, srcB: T.frameB } });
     },
   },
   // Zooms into `previous.zoomCenter`, then out of the next scene.
