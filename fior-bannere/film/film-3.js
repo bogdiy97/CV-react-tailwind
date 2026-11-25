@@ -219,7 +219,7 @@ const pourFlood = {
 };
 
 function sceneGold(local, duration, out) {
-  liquidReveal(local, out, {
+  liquidReveal(local, T.c, {
     palette: PALETTES.gold,
     relief: reliefTexture,
     polish: 1,
@@ -241,6 +241,12 @@ function sceneGold(local, duration, out) {
       });
     },
   });
+  // the gold arrives on the big hit of the music: a flash and a ripple spreading from where the logo will rise
+  gpu.pass('shock', {
+    target: out,
+    uniforms: { age: local, center: uvPoint(540, 860), aspect: ASPECT, strength: local < 2.4 ? 0.55 : 0 },
+    textures: { source: T.c },
+  });
 }
 
 // ---------- timeline ----------
@@ -253,7 +259,7 @@ const SCENES = [
   { start: 16, end: 18, ...sceneAlone, transition: 'dissolve', transitionDuration: 0.3 },
   { start: 18, end: 20.5, ...sceneTogether, transition: 'dissolve' },
   { start: 20.5, end: 24, ...pourFlood, transition: 'dissolve' },
-  { start: 24, end: VIDEO_DURATION, draw: sceneGold, transition: 'dissolve' },
+  { start: 24, end: VIDEO_DURATION, draw: sceneGold },
 ];
 
 function aberrationAt(t) {
