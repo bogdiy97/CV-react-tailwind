@@ -26,7 +26,7 @@ const FILMS = {
   3: {
     page: 'film-3.html', name: 'fior-film-3', crf: 21,
     music: ['--duration', '30', '--bpm', '120', '--sections', '0:intro,4:verse,12:drop,16:verse,20.5:intro,24:finale',
-      '--hits', '4,8,10,12,16,20.5', '--big', '24', '--final', '26.6'],
+      '--hits', '4,8,10,12,16,18,20.5', '--big', '24', '--final', '26.6'],
   },
   craciun: {
     page: 'film-craciun.html', name: 'fior-film-craciun', crf: 22,

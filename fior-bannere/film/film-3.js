@@ -42,13 +42,11 @@ function phrase(str, local, from, to, y = 1500) {
   riseText(str, 540, y, local, from, { size: 108, italic: true, gold: true, shadow: 30, maxWidth: 960, alpha: out, duration: 0.5 });
 }
 
-// A full-bleed footage scene. shot(local, duration) -> { clip, position, fx, fy, zoom }.
-function footageScene(shot, drawWords, look = LOOK) {
+// A full-bleed scene with the film look: paint(local, duration) draws the picture, drawWords the text on top.
+function gradedScene(paint, drawWords, look = LOOK) {
   return {
-    clips: (local, duration) => [shot(local, duration)],
     draw(local, duration, out) {
-      const frame = shot(local, duration);
-      drawInto(layer, () => drawClip(frame.clip, frame.position, frame));
+      drawInto(layer, () => paint(local, duration));
       gpu.pass('grade', { target: T.a, uniforms: { ...look, time: local + (look.leakOffset || 0) }, textures: { source: layerTexture() } });
       drawInto(textLayer, () => {
         goldDust(local, 70, 57, { speed: 34, alpha: 0.55 }); // the same gold dust as in the product scenes
@@ -57,6 +55,15 @@ function footageScene(shot, drawWords, look = LOOK) {
       gpu.pass('compose', { target: out, textures: { base: T.a, overlay: textTexture() } });
     },
   };
+}
+
+// Footage: shot(local, duration) -> { clip, position, fx, fy, zoom }.
+function footageScene(shot, drawWords, look = LOOK) {
+  const paint = (local, duration) => {
+    const frame = shot(local, duration);
+    drawClip(frame.clip, frame.position, frame);
+  };
+  return { clips: (local, duration) => [shot(local, duration)], ...gradedScene(paint, drawWords, look) };
 }
 
 const SMALL = { family: SANS, weight: 700, size: 24, spacing: 9, color: COLORS.goldLight };
@@ -168,37 +175,29 @@ const sceneDrop = {
   },
 };
 
-const RING = ['gutui', 'hlZmeura', 'sangria', 'hlMenta', 'hugo', 'hlGhimbir', 'hlSoc'];
-
-// The range turns in front of her, out of focus at her table.
-const orbitShot = (local) => ({ clip: 'masa', position: 20 + local * FPS, fx: 0.5, zoom: 1.05 });
-const sceneOrbit = {
-  clips: (local) => [orbitShot(local)],
-  draw(local, duration, out) {
-    orbitScene(local, duration, out, {
-      ring: RING,
-      drawBackdrop: () => {
-        const shot = orbitShot(local);
-        ctx.save();
-        ctx.filter = 'blur(26px) brightness(0.5) saturate(1.15)';
-        drawClip(shot.clip, shot.position, { ...shot, x: -60, y: -60, w: W + 120, h: H + 120 });
-        ctx.restore();
-        const shade = ctx.createLinearGradient(0, 900, 0, H);
-        shade.addColorStop(0, 'rgba(10,5,2,0)');
-        shade.addColorStop(1, 'rgba(10,5,2,.75)');
-        ctx.fillStyle = shade;
-        ctx.fillRect(0, 900, W, H - 900);
-      },
-      drawText: () => {
-        goldDust(local, 110, 23, { speed: 30, alpha: 0.7 });
-        riseText('Singur sau', 540, 300, local, 0.5, { size: 120, shadow: 24 });
-        riseText('împreună.', 540, 430, local, 0.75, { size: 120, italic: true, gold: true, shadow: 24 });
-        rule(540, 1668, 520, local, 1.1);
-        trackText('LICHIOR  ·  COCKTAILS  ·  HARD LEMONADE', 540, 1730, local, 1.2, { ...SMALL, alpha: 0.9 });
-      },
-    });
+// "Singur" – she, alone at her table.
+const sceneAlone = footageScene(
+  (local, duration) => ({ clip: 'masa', position: 6 + local * FPS, fx: 0.62, zoom: lerp(1, 1.05, local / duration) }),
+  (local) => {
+    scrim(0.2, 0.8);
+    riseText('Singur', 540, 1500, local, 0.25, { size: 170, shadow: 36 });
   },
-};
+  { ...LOOK, exposure: 0.82, lift: 0.3 },
+);
+
+// "sau împreună." – the couple from the official Fior photo; the slow drift keeps both faces in the vertical frame.
+const sceneTogether = gradedScene(
+  (local, duration) => {
+    const p = local / duration;
+    ctx.imageSmoothingQuality = 'high';
+    cover(img.fotoJob, 0, 0, W, H, lerp(1, 1.04, p), lerp(0.57, 0.6, p), 0.3);
+  },
+  (local) => {
+    scrim(0.15, 0.85);
+    riseText('sau împreună.', 540, 1345, local, 0.25, { size: 132, italic: true, gold: true, shadow: 36, maxWidth: 980 });
+  },
+  { ...LOOK, sharpen: 0.9, exposure: 0.9, leak: 0.7 },
+);
 
 const scenePour = footageScene(
   (local, duration) => ({ clip: 'turnare', position: 8 + local * FPS * 1.4, fx: 0.38, zoom: lerp(1.08, 1, local / duration) }),
@@ -250,7 +249,8 @@ const SCENES = [
   { start: 8, end: 10, ...scenePortrait, transition: 'flash' },
   { start: 10, end: 12, ...sceneLabel, transition: 'dissolve' },
   { start: 12, end: 16, ...sceneDrop },
-  { start: 16, end: 20.5, ...sceneOrbit, transition: 'burn' },
+  { start: 16, end: 18, ...sceneAlone, transition: 'dissolve', transitionDuration: 0.3 },
+  { start: 18, end: 20.5, ...sceneTogether, transition: 'dissolve' },
   { start: 20.5, end: 24, ...pourFlood, transition: 'flash' },
   { start: 24, end: VIDEO_DURATION, draw: sceneGold, transition: 'dissolve' },
 ];
