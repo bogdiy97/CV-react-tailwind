@@ -404,6 +404,40 @@ function drawRoom(local) {
     ctx.fillRect(x - width, MANTEL_Y, width * 2, 230);
   });
   ctx.restore();
+  // the front edge of the shelf, then the shadow under it
+  const edge = ctx.createLinearGradient(0, MANTEL_Y + 58, 0, MANTEL_Y + 96);
+  edge.addColorStop(0, 'rgba(0,0,0,.55)');
+  edge.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = 'rgba(120,70,30,.5)';
+  ctx.fillRect(0, MANTEL_Y + 54, W, 3);
+  ctx.fillStyle = edge;
+  ctx.fillRect(0, MANTEL_Y + 58, W, 38);
+  // fire light from the hearth below, flickering
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const flicker = 0.8 + 0.2 * Math.sin(local * 8.3) * Math.sin(local * 3.1 + 1);
+  const fire = ctx.createRadialGradient(540, H + 150, 0, 540, H + 150, 620);
+  fire.addColorStop(0, `rgba(255,150,60,${0.5 * flicker})`);
+  fire.addColorStop(0.5, `rgba(255,110,40,${0.2 * flicker})`);
+  fire.addColorStop(1, 'rgba(255,100,30,0)');
+  ctx.fillStyle = fire;
+  ctx.fillRect(0, MANTEL_Y + 60, W, H - MANTEL_Y - 60);
+  // a string of fairy lights hanging in three swags under the shelf
+  for (let swag = 0; swag < 3; swag += 1) {
+    for (let i = 0; i <= 9; i += 1) {
+      const u = i / 9;
+      const x = 40 + (swag + u) * ((W - 80) / 3);
+      const y = MANTEL_Y + 78 + 70 * Math.sin(Math.PI * u);
+      const on = 0.45 + 0.55 * Math.abs(Math.sin(local * 2.2 + swag * 1.7 + i * 0.9));
+      const bulb = ctx.createRadialGradient(x, y, 0, x, y, 24);
+      bulb.addColorStop(0, `rgba(255,240,200,${on})`);
+      bulb.addColorStop(0.25, `rgba(255,196,110,${0.5 * on})`);
+      bulb.addColorStop(1, 'rgba(255,180,90,0)');
+      ctx.fillStyle = bulb;
+      ctx.fillRect(x - 24, y - 24, 48, 48);
+    }
+  }
+  ctx.restore();
   const rand = seededRandom(404);
   for (let i = 0; i < 520; i += 1) { // fir garland lying on the mantel
     const x = rand() * W;
