@@ -143,6 +143,26 @@ function rule(x, y, width, local, start) {
   ctx.fillRect(x - (width * p) / 2, y, width * p, 2);
 }
 
+// Runs `draw` scaled by `scale` around the point (cx, cy).
+function scaledAround(cx, cy, scale, draw) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+  ctx.translate(-cx, -cy);
+  draw();
+  ctx.restore();
+}
+
+// Runs `draw` rotated by `angle` around the point (px, py).
+function rotatedAround(px, py, angle, draw) {
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.rotate(angle);
+  ctx.translate(-px, -py);
+  draw();
+  ctx.restore();
+}
+
 const scratch = makeCanvas();
 const scratchReflection = makeCanvas();
 

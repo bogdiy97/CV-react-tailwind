@@ -125,7 +125,7 @@ Videourile din carusele au muzică (vezi „Muzica”), cu chimval la fiecare sc
 | `carusele.html` | caruselele |
 | `reel.html`, `reel.js` | Reel-urile (`reel.html?c=dupa-job` etc.) |
 | `video-capture.cjs` | captura cadru cu cadru în MP4, folosită de Reels și de film |
-| `film/` | filmele: `desen.js` (desen 2D), `gpu.js` (WebGL), `shadere.js` (efecte), `motor.js` (scene și post-procesare comune), `film.js`, `film-2.js`, `film-3.js`, `film-craciun.js`, `film-produs.js` + `produse.js` (scenele), `filmare.js` + `cadre.py` (filmarea reală), `storyboard.cjs` (planșe de control), `muzica.py` (muzica: MIDI cântat cu FluidSynth), `ITERATII.md` (jurnalul celor 50 de iterații) |
+| `film/` | filmele: `desen.js` (desen 2D), `gpu.js` (WebGL), `shadere.js` (efecte), `motor.js` (scene și post-procesare comune), `film.js`, `film-2.js`, `film-3.js`, `film-craciun.js` + `craciun-desen.js` (desenele de Crăciun), `film-produs.js` + `produse.js` (scenele), `filmare.js` + `cadre.py` (filmarea reală), `storyboard.cjs` (planșe de control), `verifica.py` (măsoară un video randat), `muzica.py` (muzica: MIDI cântat cu FluidSynth), `ITERATII.md` (jurnalul celor 50 de iterații) |
 
 ## Cum modifici
 
