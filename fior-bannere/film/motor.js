@@ -172,10 +172,10 @@ function anamorphicFlare(y, strength) {
 
 // Molten liquid (full resolution) with a relief mask (logo or word) that drains away with a burning edge
 // and reveals the card painted by `drawCard`. emboss and drain are 0..1.
-function liquidReveal(local, out, { palette, relief, rect = [0, 0, 1, 1], zoom = 1, emboss, drain, drawCard }) {
+function liquidReveal(local, out, { palette, relief, rect = [0, 0, 1, 1], zoom = 1, emboss, drain, polish = 0, drawCard }) {
   gpu.pass('gold', {
     target: T.liquid,
-    uniforms: { ...palette, bump: 1, time: local + 3, aspect: ASPECT, zoom, emboss, logoRect: rect },
+    uniforms: { ...palette, bump: 1, polish, time: local + 3, aspect: ASPECT, zoom, emboss, logoRect: rect },
     textures: { logo: relief },
   });
   drawInto(textLayer, drawCard);

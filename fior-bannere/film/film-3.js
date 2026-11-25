@@ -222,6 +222,7 @@ function sceneGold(local, duration, out) {
   liquidReveal(local, out, {
     palette: PALETTES.gold,
     relief: reliefTexture,
+    polish: 1,
     zoom: 1 - 0.1 * (local / duration),
     emboss: easeInOut(progress(local, 0.3, 1.5)),
     drain: easeInOut(progress(local, 2.2, 1.2)),
@@ -251,7 +252,7 @@ const SCENES = [
   { start: 12, end: 16, ...sceneDrop },
   { start: 16, end: 18, ...sceneAlone, transition: 'dissolve', transitionDuration: 0.3 },
   { start: 18, end: 20.5, ...sceneTogether, transition: 'dissolve' },
-  { start: 20.5, end: 24, ...pourFlood, transition: 'flash' },
+  { start: 20.5, end: 24, ...pourFlood, transition: 'dissolve' },
   { start: 24, end: VIDEO_DURATION, draw: sceneGold, transition: 'dissolve' },
 ];
 

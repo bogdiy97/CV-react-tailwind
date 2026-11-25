@@ -17,6 +17,7 @@ const SHADERS = {
   // Molten metal or liquid (domain-warped noise, lit); a mask (logo or a word) rises out of it as a relief.
   gold: `uniform sampler2D logo; uniform vec4 logoRect; uniform float emboss; uniform float zoom; uniform float aspect;
     uniform vec3 deep; uniform vec3 mid; uniform vec3 shine; uniform vec3 rimTint; uniform float bump;
+    uniform float polish; // 1: the relief is a flat, polished face with a shadow around it (easier to read)
     void main() {
       vec2 p = (vec2((uv.x - 0.5) * aspect, uv.y - 0.5) * zoom + 0.5) * 2.6;
       float t = time * 0.32;
@@ -36,6 +37,10 @@ const SHADERS = {
       vec3 c = mix(deep, mid, clamp(diff * 0.8 + h * 0.3 - 0.1, 0.0, 1.0));
       c += spec * shine * 1.1 + rim * rimTint * 0.35;
       c *= 0.55 + 0.6 * smoothstep(0.1, 0.75, h);
+      float face = inside * texture(logo, luv).a;
+      float around = clamp(inside * textureLod(logo, luv, 4.0).a * 1.6 - face, 0.0, 1.0);
+      c *= 1.0 - polish * emboss * around * 0.6;
+      c = mix(c, mix(mid, shine, 0.6) * (0.8 + 0.35 * diff) + spec * 0.3, polish * emboss * face * 0.8);
       color = vec4(c, 1.0);
     }`,
 
