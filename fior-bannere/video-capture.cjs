@@ -16,7 +16,8 @@ function startEncoder(outFile, { audioFile, crf }) {
   return { ffmpeg, done };
 }
 
-async function captureVideo(browser, { url, outFile, audioFile, crf = 19, width = 1080, height = 1920 }) {
+// cover: optional { at: seconds, file: path } – that frame is also saved as a PNG (the cover image for the post).
+async function captureVideo(browser, { url, outFile, audioFile, crf = 19, width = 1080, height = 1920, cover = null }) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
   await page.goto(url);
   await page.evaluate(() => window.videoReady || document.fonts.ready);
@@ -31,6 +32,10 @@ async function captureVideo(browser, { url, outFile, audioFile, crf = 19, width 
   }
   ffmpeg.stdin.end();
   await done;
+  if (cover) {
+    await page.evaluate((t) => window.renderFrame(t), cover.at);
+    await page.screenshot({ path: cover.file });
+  }
   await page.close();
   return duration;
 }

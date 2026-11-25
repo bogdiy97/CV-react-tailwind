@@ -1,4 +1,5 @@
-// Renders a Fior film into ../video: <name>.mp4 with music (muzica.py) and <name>-fara-sunet.mp4.
+// Renders a Fior film into ../video: <name>.mp4 with music (muzica.py) and <name>-fara-sunet.mp4;
+// films 3 and craciun also get a cover image, ../png/coperta-<name>.png.
 // Usage: node fior-bannere/film/render-film.cjs <film> [--doar-sunet]
 //   <film>: 1 | 2 | 3 | craciun | gutui | sangria | hugo | hard-lemonade | gama
 //   --doar-sunet: keep the picture, only compose new music and put it on <name>-fara-sunet.mp4 (seconds, no re-render).
@@ -24,12 +25,12 @@ const FILMS = {
   },
   // Film 3 uses the official footage (run cadre.py first).
   3: {
-    page: 'film-3.html', name: 'fior-film-3', crf: 21,
+    page: 'film-3.html', name: 'fior-film-3', crf: 21, coverAt: 2.6,
     music: ['--duration', '30', '--bpm', '120', '--sections', '0:intro,4:verse,12:drop,16:verse,20.5:intro,24:finale',
       '--hits', '4,8,10,12,16,18,20.5', '--big', '24', '--final', '26.6', '--sparkle', '1.0,26.3'],
   },
   craciun: {
-    page: 'film-craciun.html', name: 'fior-film-craciun', crf: 22,
+    page: 'film-craciun.html', name: 'fior-film-craciun', crf: 22, coverAt: 13.4,
     music: ['--style', 'craciun', '--duration', '30', '--bpm', '100', '--sections', '0:intro,4.8:verse,14.4:drop,19.2:verse,24:finale',
       '--hits', '4.8,9.6,14.4,19.2,24', '--big', '25.2', '--final', '27', '--sparkle', '2.2,11.1,12.2,27.3'],
   },
@@ -59,7 +60,9 @@ function run(command, args) {
 
   if (!onlySound) {
     const browser = await chromium.launch({ args: BROWSER_ARGS });
-    await captureVideo(browser, { url: 'file://' + path.join(__dirname, film.page), outFile: silent, crf: film.crf });
+    // films with `coverAt` also get png/coperta-<name>.png: the cover image for the post
+    const cover = film.coverAt ? { at: film.coverAt, file: path.join(__dirname, '..', 'png', `coperta-${film.name}.png`) } : null;
+    await captureVideo(browser, { url: 'file://' + path.join(__dirname, film.page), outFile: silent, crf: film.crf, cover });
     await browser.close();
   }
   run('ffmpeg', ['-y', '-loglevel', 'error', '-i', silent, '-i', music, '-map', '0:v', '-map', '1:a',
