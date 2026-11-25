@@ -5,7 +5,7 @@ const VIDEO_DURATION = 30;
 window.VIDEO_DURATION = VIDEO_DURATION;
 const BEAT = 0.6;
 
-const ICON_IDS = ['quince-branch', 'berry', 'elderflower', 'citrus', 'sparkle', 'snowflake'];
+const ICON_IDS = ['berry', 'snowflake']; // gold line art on the red and green baubles
 const LOGO_WIDTH = 720;
 const LOGO_RECT = { x: 540 - LOGO_WIDTH / 2, y: 860 - (LOGO_WIDTH * 347) / 635 / 2, width: LOGO_WIDTH, height: (LOGO_WIDTH * 347) / 635 };
 const PINE = { base: [0.012, 0.035, 0.022], glow: [0.1, 0.24, 0.12], ray: [1.0, 0.85, 0.5] };

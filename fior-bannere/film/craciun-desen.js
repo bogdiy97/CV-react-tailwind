@@ -94,11 +94,51 @@ function drawDecorations(local, at, alpha = 1) {
     ctx.fillStyle = COLORS.gold;
     ctx.fillRect(x - 5 * pop, y - r - 7 * pop, 10 * pop, 8 * pop);
   });
-  const star = easeOut(progress(local, at + 0.7, 0.6));
+  drawStar(540, TREE.top - 22, easeOut(progress(local, at + 0.7, 0.6)), local);
+  ctx.restore();
+}
+
+// The gold star on top of the tree: glow, four long rays that turn slowly, and a five-pointed star. size: 0..1.
+function drawStar(x, y, size, local) {
+  if (size <= 0) return;
+  const pulse = 0.88 + 0.12 * Math.sin(local * 5);
+  ctx.save();
   ctx.globalCompositeOperation = 'lighter';
-  lightLeak(540, TREE.top - 16, 300 * star, '255,214,140', 0.55 * star * (0.85 + 0.15 * Math.sin(local * 6)));
-  drawIcon('sparkle', 540, TREE.top - 16, 170 * star, { alpha: star, rotation: local * 0.25 });
-  drawIcon('sparkle', 540, TREE.top - 16, 100 * star, { alpha: star, rotation: Math.PI / 4 - local * 0.25 });
+  lightLeak(x, y, 320 * size, '255,214,140', 0.55 * size * pulse);
+  ctx.translate(x, y);
+  for (let i = 0; i < 4; i += 1) { // rays
+    ctx.save();
+    ctx.rotate(local * 0.25 + (i * Math.PI) / 4);
+    const length = (i % 2 ? 150 : 250) * size * pulse;
+    const ray = ctx.createLinearGradient(-length, 0, length, 0);
+    ray.addColorStop(0, 'rgba(255,236,190,0)');
+    ray.addColorStop(0.5, `rgba(255,244,214,${0.9 * size})`);
+    ray.addColorStop(1, 'rgba(255,236,190,0)');
+    ctx.fillStyle = ray;
+    ctx.fillRect(-length, -2, length * 2, 4);
+    ctx.restore();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  const outer = 64 * size;
+  const inner = outer * 0.42;
+  const gold = ctx.createRadialGradient(-outer * 0.2, -outer * 0.25, outer * 0.05, 0, 0, outer);
+  gold.addColorStop(0, '#fffbe6');
+  gold.addColorStop(0.45, '#f6d77a');
+  gold.addColorStop(1, '#c08a2c');
+  ctx.fillStyle = gold;
+  ctx.strokeStyle = 'rgba(255,246,214,.9)';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = 'rgba(255,214,140,.9)';
+  ctx.shadowBlur = 30;
+  ctx.beginPath();
+  for (let i = 0; i < 10; i += 1) {
+    const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+    const radius = i % 2 ? inner : outer;
+    ctx.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
   ctx.restore();
 }
 
