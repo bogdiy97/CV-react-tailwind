@@ -8,7 +8,7 @@ const BEAT = 0.6;
 const ICON_IDS = ['quince-branch', 'berry', 'elderflower', 'citrus', 'sparkle', 'snowflake'];
 const LOGO_WIDTH = 720;
 const LOGO_RECT = { x: 540 - LOGO_WIDTH / 2, y: 860 - (LOGO_WIDTH * 347) / 635 / 2, width: LOGO_WIDTH, height: (LOGO_WIDTH * 347) / 635 };
-const TREE = { top: 600, bottom: 1440, halfWidth: 330 };
+const TREE = { top: 640, bottom: 1570, halfWidth: 370 };
 const PINE = { base: [0.012, 0.035, 0.022], glow: [0.1, 0.24, 0.12], ray: [1.0, 0.85, 0.5] };
 const SMALL = { family: SANS, weight: 700, size: 24, spacing: 9, color: COLORS.goldLight };
 let particles;
@@ -312,7 +312,7 @@ function sceneNight(local, duration, out) {
   snowPass(T.a, out, local, 0.85);
 }
 
-const GLOBE = { x: 540, y: 950, r: 400 };
+const GLOBE = { x: 540, y: 1070, r: 400 };
 const HEARTH = { base: [0.05, 0.018, 0.006], glow: [0.5, 0.2, 0.05] };
 
 // The little world inside the snow globe: the bottle on a snow mound between two small firs.
@@ -389,7 +389,7 @@ function drawGlobeBase() {
 }
 
 // The room behind the globe: a wooden mantel under warm bokeh lights, fir branches along it, two candles.
-const MANTEL_Y = 1470;
+const MANTEL_Y = 1590;
 
 function drawFlame(x, y, size, local, phase) {
   const flicker = 0.88 + 0.12 * Math.sin(local * 9 + phase) * Math.sin(local * 3.7 + phase * 2);
@@ -482,7 +482,7 @@ function sceneInside(local, duration, out) {
   const rock = 0.085 * Math.exp(-2.2 * since) * Math.sin(9.5 * since);
   // a slow push-in on the globe; the lights behind stay put (parallax)
   const push = 1 + 0.09 * easeInOut(local / duration);
-  const pivot = { x: 540, y: 1150 };
+  const pivot = { x: 540, y: 1270 };
   const reach = MANTEL_Y - GLOBE.y;
   const rocked = { x: GLOBE.x + reach * Math.sin(rock), y: MANTEL_Y - reach * Math.cos(rock) };
   const centre = uvPoint(pivot.x + (rocked.x - pivot.x) * push, pivot.y + (rocked.y - pivot.y) * push);
@@ -527,7 +527,7 @@ function drawGift(x, baseY, width, height, [dark, mid, light], ribbon) {
 }
 
 const GIFT_PAPERS = { red: ['#4a0710', '#b3162a', '#d8394a'], gold: ['#6b4a16', '#d9ab4e', '#f1dca4'], green: ['#0c2a18', '#1f6b3c', '#2f8a50'] };
-const FLOOR_Y = 1500;
+const FLOOR_Y = 1630;
 
 const TREE_LIGHT = { time: 0, center: [540, 1000], rise: [TREE.bottom, TREE.top, TREE.halfWidth], festive: 1 };
 
