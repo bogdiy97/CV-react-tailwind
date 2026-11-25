@@ -7,14 +7,14 @@ Doar prezentare de produs: fără prețuri, oferte sau îndemnuri de cumpărare.
 - **5 videouri din carusele** verticale (1080×1920, MP4, cu sunet), în `video/`, plus copii fără sunet
 - **1 film de brand** vertical (1080×1920, 26 s, cu sunet), în `video/fior-film.mp4`, plus o copie fără sunet
 - **Filmul 2, „Aurul toamnei”** (1080×1920, 32 s, cu sunet, efecte WebGL), în `video/fior-film-2.mp4`, plus o copie fără sunet
-- **Filmul 3, „Esența rafinamentului”** (30 s, cu filmarea oficială Fior), în `video/fior-film-3.mp4`
-- **Filmul de Crăciun, „Un fior de Crăciun”** (30 s), în `video/fior-film-craciun.mp4`
+- **Filmul 3, „Esența rafinamentului”** (30 s, cu filmarea oficială Fior), în `video/fior-film-3.mp4`, cu coperta `png/coperta-fior-film-3.png`
+- **Filmul de Crăciun, „Un fior de Crăciun”** (30 s), în `video/fior-film-craciun.mp4`, cu coperta `png/coperta-fior-film-craciun.png`
 
 Filmele 3 și de Crăciun au fost lucrate în 50 de iterații; jurnalul e în `film/ITERATII.md`.
 
 ## Filmul 3 și filmul de Crăciun
 
-- **Filmul 3** montează filmarea oficială de pe fiordrinks.ro (doamna în rochie roșie) cu efectele WebGL: deschidere tip cortină, slow-motion lin, triptic pe ritm, gama în fața filmării estompate, turnatul care se topește în aur lichid și logo.
+- **Filmul 3** montează filmarea oficială de pe fiordrinks.ro (doamna în rochie roșie) cu efectele WebGL: deschidere tip cortină, slow-motion lin, triptic pe ritm, „Singur” (ea) „sau împreună.” (fotografia oficială a cuplului), turnatul care se topește în aur lichid, logo și gama.
 - **Filmul de Crăciun**: noapte cu ninsoare și cabană, zoom prin fereastră, glob de zăpadă pe șemineu, brad din particule aprins de o scânteie, cadouri pe ritm, coroniță, felicitare finală.
 
 ```bash
@@ -22,6 +22,7 @@ python3 fior-bannere/film/cadre.py              # o dată: descarcă filmarea ș
 node fior-bannere/film/render-film.cjs 3        # -> video/fior-film-3.mp4
 node fior-bannere/film/render-film.cjs craciun  # -> video/fior-film-craciun.mp4
 node fior-bannere/film/storyboard.cjs film-craciun.html /tmp/planșă.png 1 6 12 15 21 27   # cadre de control, fără randare completă
+python3 fior-bannere/film/verifica.py fior-bannere/video/fior-film-3.mp4                  # măsoară un video randat
 ```
 
 ## Videouri de produs (WebGL)
