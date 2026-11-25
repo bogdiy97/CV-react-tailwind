@@ -145,7 +145,8 @@ function sceneGifts(local, duration, out) {
     bottleCut(cl, T.c, { ...visual, zoomIn: 1.16 - 0.16 * easeOut(cl / BEAT), decorate: bowOn });
   }
   snowPass(T.c, T.b, local, 0.35);
-  gpu.pass('shock', { target: out, uniforms: { age: cl, center: [0.5, 0.5], aspect: ASPECT, strength: 1 }, textures: { source: T.b } });
+  // a gentle flash: the snow and the lights are bright already
+  gpu.pass('shock', { target: out, uniforms: { age: cl, center: [0.5, 0.5], aspect: ASPECT, strength: 0.55 }, textures: { source: T.b } });
 }
 
 const RING = ['gutui', 'hlZmeura', 'sangria', 'hlMenta', 'hugo', 'hlGhimbir', 'hlSoc'];
